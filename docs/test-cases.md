@@ -1,6 +1,6 @@
 # Test Cases - To-Do App (GRP8)
 
-Tester: Adhikesh P Kannan | Branch: feature/testing-docs | Stack: React + TypeScript, FastAPI, PostgreSQL
+Tester: Adhikesh P Kannan | Branch: feature/testing-docs | Stack: React + TypeScript, FastAPI, PostgreSQL | Roles: User and Admin
 
 How to use: follow Steps, write what really happened in Actual Result, set Status to Pass, Fail or Blocked.
 If a test fails, log it in [bug-report.md](bug-report.md). Update field names and status codes once the real app is ready.
@@ -58,9 +58,40 @@ If a test fails, log it in [bug-report.md](bug-report.md). Update field names an
 | TC-049 | Database (PostgreSQL) | Update reflects in table | Edit a task in the app; check the row in pgAdmin | Row shows the updated values |  | Not Run |
 | TC-050 | Database (PostgreSQL) | Delete removes row | Delete a task in the app; check pgAdmin | Row is removed |  | Not Run |
 | TC-051 | Database (PostgreSQL) | Password not stored as plain text | Check the users table in pgAdmin | Only password_hash is stored, not the real password |  | Not Run |
-| TC-052 | Security / General | Users see only own tasks | Login as User A then User B | Each user sees only their own tasks |  | Not Run |
-| TC-053 | Security / General | Open page without login | Open Dashboard URL while logged out | Redirected to Login |  | Not Run |
-| TC-054 | Security / General | Mobile layout | Open the app in a phone-size window | Layout fits; buttons usable |  | Not Run |
-| TC-055 | Security / General | Backend stopped | Stop the backend server; try any action | Clear error message; no blank screen |  | Not Run |
+| TC-052 | Registration | Valid registration | Open Registration page; fill name, email, password; click Register | Account created; user can login afterwards |  | Not Run |
+| TC-053 | Registration | Empty fields | Leave all fields empty; click Register | Validation messages for required fields |  | Not Run |
+| TC-054 | Registration | Invalid email format | Enter abc (no @) as email; click Register | Validation message for email format |  | Not Run |
+| TC-055 | Registration | Short or weak password | Enter a 1-2 character password; click Register | Validation message; account not created |  | Not Run |
+| TC-056 | Registration | Duplicate email | Register again with an already used email | Error message that email exists; no duplicate account |  | Not Run |
+| TC-057 | Registration | Password and confirm mismatch (if available) | Enter different values in password and confirm password | Validation message; account not created |  | Not Run |
+| TC-058 | Registration | New user gets User role | Register a new account; login | User lands on User Dashboard, not Admin Dashboard |  | Not Run |
+| TC-059 | Roles and Access | User login opens User Dashboard | Login with a normal user account | User Dashboard opens with personal task options |  | Not Run |
+| TC-060 | Roles and Access | Admin login opens Admin Dashboard | Login with the admin account | Admin Dashboard opens with admin options |  | Not Run |
+| TC-061 | Roles and Access | User cannot open Admin Dashboard by URL | Login as user; type the Admin Dashboard URL in the browser | Access denied or redirected; admin data not shown |  | Not Run |
+| TC-062 | Roles and Access | Admin Dashboard hidden from user | Login as user; look at menus and buttons | No Admin options visible to the user |  | Not Run |
+| TC-063 | Roles and Access | Logged-out user cannot open dashboards | Logout; open User and Admin Dashboard URLs | Redirected to Login |  | Not Run |
+| TC-064 | Roles and Access | Session expiry or logout | Logout, then press browser Back button | Dashboard does not open without login |  | Not Run |
+| TC-065 | User Dashboard | Mark as Completed | Click Mark as Completed on a task | Status becomes Completed; shown under Completed filter |  | Not Run |
+| TC-066 | User Dashboard | Pending filter | Click Pending filter | Only pending tasks of this user shown |  | Not Run |
+| TC-067 | User Dashboard | Completed filter | Click Completed filter | Only completed tasks of this user shown |  | Not Run |
+| TC-068 | User Dashboard | Shows only own tasks | Login as User A and User B one after another | Each user sees only their own tasks |  | Not Run |
+| TC-069 | Admin Dashboard | View all registered users | Login as admin; open users list | All registered users shown with name, email and role |  | Not Run |
+| TC-070 | Admin Dashboard | View all tasks | Login as admin; open all tasks list | Tasks of all users shown with owner name |  | Not Run |
+| TC-071 | Admin Dashboard | Manage users | Use manage options (edit, disable or delete) on a test user | Change is applied and shown in the list and database |  | Not Run |
+| TC-072 | Admin Dashboard | Deleting a user and their tasks | Delete a user who has tasks | Tasks handled as designed (deleted or blocked), no errors |  | Not Run |
+| TC-073 | Admin Dashboard | Task statistics are correct | Compare statistics with actual tasks (total, completed, pending) | Numbers match the real data |  | Not Run |
+| TC-074 | Admin Dashboard | Statistics update | Add or complete a task as a user; refresh admin statistics | Statistics change accordingly |  | Not Run |
+| TC-075 | Admin Dashboard | Empty state | Open admin lists when no tasks exist | Friendly empty message; no crash |  | Not Run |
+| TC-076 | API (FastAPI) | Login API valid | POST login with correct email and password at /docs | Success response with a token |  | Not Run |
+| TC-077 | API (FastAPI) | Login API wrong password | POST login with wrong password | 401 or error message; no token |  | Not Run |
+| TC-078 | API (FastAPI) | Admin API with user token | Call an admin-only API using a normal user token | 403 forbidden |  | Not Run |
+| TC-079 | API (FastAPI) | Admin API without token | Call an admin-only API with no token | 401 unauthorized |  | Not Run |
+| TC-080 | API (FastAPI) | User gets only own tasks | Call GET tasks with User A token | Only User A tasks returned |  | Not Run |
+| TC-081 | Database (PostgreSQL) | Role stored for each user | Open users table in pgAdmin | Each user has a role (user or admin) |  | Not Run |
+| TC-082 | Database (PostgreSQL) | New user default role | Register a new user; check users table | Role is user by default |  | Not Run |
+| TC-083 | Database (PostgreSQL) | Task linked to correct user | Add a task as User A; check tasks table | user_id matches User A id |  | Not Run |
+| TC-084 | Security / General | Open page without login | Open Dashboard URL while logged out | Redirected to Login |  | Not Run |
+| TC-085 | Security / General | Mobile layout | Open the app in a phone-size window | Layout fits; buttons usable |  | Not Run |
+| TC-086 | Security / General | Backend stopped | Stop the backend server; try any action | Clear error message; no blank screen |  | Not Run |
 
 Status values: Not Run, Pass, Fail, Blocked
