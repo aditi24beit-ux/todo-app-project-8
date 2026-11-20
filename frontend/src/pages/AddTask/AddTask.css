@@ -1,0 +1,226 @@
+/* ── Add Task Screen CSS matching 04-add-edit-task-desktop.svg & mobile ── */
+.add-task-view {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.add-task-banner {
+  margin-top: -6px;
+}
+
+.add-task-subline {
+  font-size: 13px;
+  color: #77738a;
+  margin: 0;
+  font-weight: 500;
+}
+
+.add-task-columns {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+.add-task-card {
+  background: #ffffff;
+  border: 1px solid #ede8f5;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.card-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #24164a;
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f1f0f5;
+}
+
+.add-task-success-alert {
+  background: #e6f8f0;
+  color: #16a36a;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+
+.add-task-error-alert {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+
+.add-task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.form-group-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.form-group-field label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #77738a;
+}
+
+.form-group-field input,
+.form-group-field textarea,
+.form-group-field select {
+  padding: 10px 14px;
+  border: 1px solid #e9e5f2;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #24164a;
+  background-color: #ffffff;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.form-group-field input:focus,
+.form-group-field textarea:focus,
+.form-group-field select:focus {
+  border-color: #6d28d9;
+  box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.12);
+}
+
+.form-group-field textarea {
+  resize: vertical;
+}
+
+.form-dual-row {
+  display: flex;
+  gap: 16px;
+}
+
+.add-task-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f0f5;
+}
+
+.btn-cancel-task {
+  padding: 9px 18px;
+  background: #f8f7fc;
+  color: #77738a;
+  border: 1px solid #ede8f5;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-cancel-task:hover {
+  background: #f1f0f5;
+  color: #24164a;
+}
+
+.btn-save-task {
+  padding: 9px 24px;
+  background: #6d28d9;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 12px rgba(109, 40, 217, 0.25);
+}
+
+.btn-save-task:hover:not(:disabled) {
+  background: #5b21b6;
+  transform: translateY(-1px);
+}
+
+.btn-save-task:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Reminder Card */
+.add-task-reminder-card {
+  background: #ffffff;
+  border: 1px solid #ede8f5;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+}
+
+.reminder-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.reminder-header h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #24164a;
+  margin: 0;
+}
+
+.reminder-highlight {
+  font-size: 13px;
+  font-weight: 600;
+  color: #24164a;
+  margin: 0 0 10px 0;
+}
+
+.reminder-example-box {
+  background: #f5f3ff;
+  border-left: 3px solid #6d28d9;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #581c87;
+  margin-bottom: 14px;
+}
+
+.example-label {
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.reminder-bullet-points {
+  font-size: 12px;
+  color: #77738a;
+  line-height: 1.6;
+  padding-left: 18px;
+  margin: 0;
+}
+
+/* ── Responsive Mobile ── */
+@media (max-width: 900px) {
+  .add-task-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .form-dual-row {
+    flex-direction: column;
+    gap: 14px;
+  }
+}
