@@ -87,7 +87,7 @@ def update_task(
         Task.user_id == current_user.id,   
     ).first()
 
-    if Task is None:
+    if task is None:
         raise HTTPException(
             status_code= status.HTTP_404_NOT_FOUND,
             detail="Task not found"
@@ -104,7 +104,6 @@ def update_task(
     return task
 
 
-
 @router.delete("/{task_id}")
 def delete_task(
     task_id : int,
@@ -117,7 +116,7 @@ def delete_task(
     ).first()
 
 
-    if Task is None:
+    if task is None:
         raise HTTPException (status_code= status.HTTP_404_NOT_FOUND,
                              detail="Task not found"
                              )

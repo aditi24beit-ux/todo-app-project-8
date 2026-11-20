@@ -24,3 +24,8 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str
     user: UserResponse
+
+
+class UserStatusUpdate(BaseModel):
+    is_active: bool
+
