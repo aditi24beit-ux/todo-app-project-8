@@ -87,11 +87,19 @@ If a test fails, log it in [bug-report.md](bug-report.md). Update field names an
 | TC-078 | API (FastAPI) | Admin API with user token | Call an admin-only API using a normal user token | 403 forbidden |  | Not Run |
 | TC-079 | API (FastAPI) | Admin API without token | Call an admin-only API with no token | 401 unauthorized |  | Not Run |
 | TC-080 | API (FastAPI) | User gets only own tasks | Call GET tasks with User A token | Only User A tasks returned |  | Not Run |
-| TC-081 | Database (PostgreSQL) | Role stored for each user | Open users table in pgAdmin | Each user has a role (user or admin) |  | Not Run |
-| TC-082 | Database (PostgreSQL) | New user default role | Register a new user; check users table | Role is user by default |  | Not Run |
+| | TC-081 | Database (PostgreSQL) | Role stored for each user | Open users table in pgAdmin | Each user has a role (user or admin) | users.role is NOT NULL and allows only user or admin; test user shows role = user | Pass |
+TC-082 | Database (PostgreSQL) | New user default role | Register a new user; check users table | Role is user by default |  | Not Run |
 | TC-083 | Database (PostgreSQL) | Task linked to correct user | Add a task as User A; check tasks table | user_id matches User A id |  | Not Run |
 | TC-084 | Security / General | Open page without login | Open Dashboard URL while logged out | Redirected to Login |  | Not Run |
 | TC-085 | Security / General | Mobile layout | Open the app in a phone-size window | Layout fits; buttons usable |  | Not Run |
 | TC-086 | Security / General | Backend stopped | Stop the backend server; try any action | Clear error message; no blank screen |  | Not Run |
-
+| TC-087 | Database (PostgreSQL) | Valid user insert with defaults | Run INSERT INTO users with valid name, email, password_hash, role; then SELECT * FROM users | Row created; is_active is true; created_at filled automatically | Row created with id 1, is_active true, created_at filled | Pass |
+| TC-088 | Database (PostgreSQL) | Duplicate email rejected | Insert a second user with the same email | Error: unique constraint violated | ERROR: duplicate key value violates unique constraint users_email_key | Pass |
+| TC-089 | Database (PostgreSQL) | Invalid role rejected | Insert a user with role superadmin | Error: check constraint violated | ERROR: new row for relation users violates check constraint users_role_check | Pass |
+| TC-090 | Database (PostgreSQL) | Task defaults | Insert a task with only user_id and title; SELECT * FROM tasks | status is pending and priority is medium | status pending, priority medium, description and due_date null | Pass |
+| TC-091 | Database (PostgreSQL) | Deleting a user deletes their tasks | DELETE the user from users; SELECT * FROM tasks | Tasks of that user are removed (CASCADE) | tasks table was empty after the delete | Pass |
+| TC-092 | Database (PostgreSQL) | Task with non-existing user_id rejected | INSERT INTO tasks (user_id, title) VALUES (9999, 'Test task') | Error: foreign key violated | ERROR: insert or update on table tasks violates foreign key constraint fk_tasks_user | Pass |
+| TC-093 | Database (PostgreSQL) | Task without title rejected | INSERT INTO tasks (user_id) VALUES (9999) | Error: null value in column title | ERROR: null value in column title of relation tasks violates not-null constraint | Pass |
+| TC-094 | Database (PostgreSQL) | Invalid task status rejected | INSERT a task with status done | Error: check constraint violated | ERROR: new row for relation tasks violates check constraint tasks_status_check | Pass |
+| TC-095 | Database (PostgreSQL) | User without name rejected | INSERT INTO users without the name column | Error: null value in column name | ERROR: null value in column name of relation users violates not-null constraint | Pass |
 Status values: Not Run, Pass, Fail, Blocked
