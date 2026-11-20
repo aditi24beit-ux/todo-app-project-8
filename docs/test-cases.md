@@ -102,4 +102,5 @@ TC-082 | Database (PostgreSQL) | New user default role | Register a new user; ch
 | TC-093 | Database (PostgreSQL) | Task without title rejected | INSERT INTO tasks (user_id) VALUES (9999) | Error: null value in column title | ERROR: null value in column title of relation tasks violates not-null constraint | Pass |
 | TC-094 | Database (PostgreSQL) | Invalid task status rejected | INSERT a task with status done | Error: check constraint violated | ERROR: new row for relation tasks violates check constraint tasks_status_check | Pass |
 | TC-095 | Database (PostgreSQL) | User without name rejected | INSERT INTO users without the name column | Error: null value in column name | ERROR: null value in column name of relation users violates not-null constraint | Pass |
+
 Status values: Not Run, Pass, Fail, Blocked
