@@ -1,0 +1,16 @@
+
+from sqlalchemy import text
+from app.database.connection import engine
+
+try:
+    if engine is None:
+        raise ValueError("DATABASE_URL is not configured!")
+
+    with engine.connect() as connection:
+        result = connection.execute(text("SELECT 1"))
+        print("Database connection successful!")
+        print("Test result:", result.scalar())
+
+except Exception as e:
+    print("Database connection failed!")
+    print("Error:", e)
