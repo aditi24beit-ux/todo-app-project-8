@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTasks } from '../../context/TaskContext';
 import AppLayout from '../../components/Layout/AppLayout';
 import EditTaskModal from '../../components/EditTaskModal/EditTaskModal';
-import type { Task } from '../../types';
+import type { Task, TaskStatus, TaskUpdateData } from '../../types';
 import './TaskList.css';
 
 export default function TaskList() {
@@ -12,7 +12,6 @@ export default function TaskList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'completed'>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('due-date');
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -24,20 +23,19 @@ export default function TaskList() {
   const filteredTasks = useMemo(() => {
     let result = [...tasks];
 
-    // Search
+    // Search query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
         (t) =>
           t.title.toLowerCase().includes(q) ||
-          t.description?.toLowerCase().includes(q) ||
-          t.category?.toLowerCase().includes(q)
+          t.description?.toLowerCase().includes(q)
       );
     }
 
     // Status Filter
     if (statusFilter === 'pending') {
-      result = result.filter((t) => t.status !== 'completed');
+      result = result.filter((t) => t.status === 'pending');
     } else if (statusFilter === 'completed') {
       result = result.filter((t) => t.status === 'completed');
     }
@@ -45,11 +43,6 @@ export default function TaskList() {
     // Priority Filter
     if (priorityFilter !== 'all') {
       result = result.filter((t) => t.priority === priorityFilter);
-    }
-
-    // Category Filter
-    if (categoryFilter !== 'all') {
-      result = result.filter((t) => t.category?.toLowerCase() === categoryFilter.toLowerCase());
     }
 
     // Sorting
@@ -75,10 +68,10 @@ export default function TaskList() {
     }
 
     return result;
-  }, [tasks, searchQuery, statusFilter, priorityFilter, categoryFilter, sortBy]);
+  }, [tasks, searchQuery, statusFilter, priorityFilter, sortBy]);
 
   const handleStatusToggle = async (task: Task) => {
-    const newStatus = task.status === 'completed' ? 'pending' : 'completed';
+    const newStatus: TaskStatus = task.status === 'completed' ? 'pending' : 'completed';
     await updateTask(task.id, { status: newStatus });
   };
 
@@ -90,6 +83,11 @@ export default function TaskList() {
     } finally {
       setDeletingId(null);
     }
+  };
+
+  const handleModalSave = async (id: number, data: TaskUpdateData) => {
+    await updateTask(id, data);
+    setEditingTask(null);
   };
 
   return (
@@ -159,6 +157,7 @@ export default function TaskList() {
               className="filter-select"
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
+              aria-label="Filter by priority"
             >
               <option value="all">Priority: All</option>
               <option value="high">High</option>
@@ -166,23 +165,12 @@ export default function TaskList() {
               <option value="low">Low</option>
             </select>
 
-            {/* Category Filter */}
-            <select
-              className="filter-select"
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-            >
-              <option value="all">Category: All</option>
-              <option value="Work">Work</option>
-              <option value="Personal">Personal</option>
-              <option value="Study">Study</option>
-            </select>
-
             {/* Sort Dropdown */}
             <select
               className="filter-select sort-select"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
+              aria-label="Sort tasks"
             >
               <option value="due-date">Sort: Due date</option>
               <option value="priority">Sort: Priority</option>
@@ -191,7 +179,7 @@ export default function TaskList() {
             </select>
           </div>
 
-          {error && <div className="task-error-alert">{error}</div>}
+          {error && <div className="task-error-alert" role="alert">{error}</div>}
 
           {/* Table / List */}
           {isLoading ? (
@@ -217,10 +205,10 @@ export default function TaskList() {
               <table className="task-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '42%' }}>TASK</th>
-                    <th style={{ width: '18%' }}>DUE DATE</th>
+                    <th style={{ width: '45%' }}>TASK</th>
+                    <th style={{ width: '20%' }}>DUE DATE</th>
                     <th style={{ width: '15%' }}>PRIORITY</th>
-                    <th style={{ width: '15%' }}>STATUS</th>
+                    <th style={{ width: '10%' }}>STATUS</th>
                     <th style={{ width: '10%', textAlign: 'right' }}>ACTIONS</th>
                   </tr>
                 </thead>
@@ -237,14 +225,19 @@ export default function TaskList() {
                               className={`row-check-circle ${isDone ? 'checked' : ''}`}
                               onClick={() => handleStatusToggle(t)}
                               title={isDone ? 'Mark as pending' : 'Mark as complete'}
+                              aria-label={isDone ? 'Mark as pending' : 'Mark as complete'}
                             >
                               {isDone ? '✓' : ''}
                             </button>
                             <div className="task-text-col">
                               <span className="table-task-title">{t.title}</span>
-                              <span className="table-task-meta">
-                                {t.category || 'Personal'} · Created by you
-                              </span>
+                              {t.description && (
+                                <span className="table-task-meta">
+                                  {t.description.length > 60
+                                    ? `${t.description.substring(0, 60)}...`
+                                    : t.description}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </td>
@@ -278,6 +271,7 @@ export default function TaskList() {
                               className="btn-action-icon"
                               onClick={() => setEditingTask(t)}
                               title="Edit task"
+                              aria-label="Edit task"
                             >
                               ✏️
                             </button>
@@ -287,6 +281,7 @@ export default function TaskList() {
                               onClick={() => handleDelete(t.id)}
                               disabled={deletingId === t.id}
                               title="Delete task"
+                              aria-label="Delete task"
                             >
                               {deletingId === t.id ? '⏳' : '🗑️'}
                             </button>
@@ -307,10 +302,7 @@ export default function TaskList() {
         <EditTaskModal
           task={editingTask}
           onClose={() => setEditingTask(null)}
-          onSave={async (id, data) => {
-            await updateTask(id, data);
-            setEditingTask(null);
-          }}
+          onSave={handleModalSave}
         />
       )}
     </AppLayout>

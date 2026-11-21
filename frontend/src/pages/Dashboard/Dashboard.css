@@ -17,6 +17,39 @@
   font-weight: 500;
 }
 
+.dash-error-alert {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  margin-top: -6px;
+}
+
+.priority-mini-pill {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  text-transform: capitalize;
+}
+
+.priority-mini-pill.high {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.priority-mini-pill.medium {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.priority-mini-pill.low {
+  background: #dcfce7;
+  color: #15803d;
+}
+
 /* 4 Metric Cards */
 .dash-metrics-grid {
   display: grid;

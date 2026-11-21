@@ -1,20 +1,19 @@
 import { useState, type FormEvent } from 'react';
-import type { Task, TaskFormData } from '../../types';
+import type { Task, TaskUpdateData, TaskStatus, TaskPriority } from '../../types';
 import './EditTaskModal.css';
 
 interface EditTaskModalProps {
   task: Task;
   onClose: () => void;
-  onSave: (id: number, data: Partial<TaskFormData>) => Promise<void>;
+  onSave: (id: number, data: TaskUpdateData) => Promise<void>;
 }
 
 export default function EditTaskModal({ task, onClose, onSave }: EditTaskModalProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<TaskUpdateData>({
     title: task.title,
     description: task.description || '',
     status: task.status,
     priority: task.priority,
-    category: task.category || 'Work',
     due_date: task.due_date || '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -29,16 +28,24 @@ export default function EditTaskModal({ task, onClose, onSave }: EditTaskModalPr
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!formData.title.trim()) {
+    if (!formData.title?.trim()) {
       setError('Task title is required.');
       return;
     }
     setIsSubmitting(true);
     setError(null);
     try {
-      await onSave(task.id, formData);
-    } catch {
-      setError('Failed to update task.');
+      await onSave(task.id, {
+        title: formData.title.trim(),
+        description: formData.description?.trim() || null,
+        status: formData.status as TaskStatus,
+        priority: formData.priority as TaskPriority,
+        due_date: formData.due_date || null,
+      });
+      onClose();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to update task.';
+      setError(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -49,12 +56,12 @@ export default function EditTaskModal({ task, onClose, onSave }: EditTaskModalPr
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>Edit Task</h2>
-          <button type="button" className="modal-close" onClick={onClose}>
+          <button type="button" className="modal-close" onClick={onClose} aria-label="Close modal">
             ×
           </button>
         </div>
 
-        {error && <div className="modal-error-alert">{error}</div>}
+        {error && <div className="modal-error-alert" role="alert">{error}</div>}
 
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-field-group">
@@ -63,7 +70,7 @@ export default function EditTaskModal({ task, onClose, onSave }: EditTaskModalPr
               id="edit-title"
               name="title"
               type="text"
-              value={formData.title}
+              value={formData.title || ''}
               onChange={handleChange}
               required
             />
@@ -74,7 +81,7 @@ export default function EditTaskModal({ task, onClose, onSave }: EditTaskModalPr
             <textarea
               id="edit-description"
               name="description"
-              value={formData.description}
+              value={formData.description || ''}
               onChange={handleChange}
               rows={3}
             />
@@ -86,12 +93,11 @@ export default function EditTaskModal({ task, onClose, onSave }: EditTaskModalPr
               <select
                 id="edit-status"
                 name="status"
-                value={formData.status}
+                value={formData.status || 'pending'}
                 onChange={handleChange}
               >
-                <option value="pending">Pending</option>
-                <option value="in-progress">In Progress</option>
-                <option value="completed">Completed</option>
+                <option value="pending">⏳ Pending</option>
+                <option value="completed">✓ Completed</option>
               </select>
             </div>
 
@@ -100,40 +106,25 @@ export default function EditTaskModal({ task, onClose, onSave }: EditTaskModalPr
               <select
                 id="edit-priority"
                 name="priority"
-                value={formData.priority}
+                value={formData.priority || 'medium'}
                 onChange={handleChange}
               >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
+                <option value="low">🟢 Low</option>
+                <option value="medium">🟡 Medium</option>
+                <option value="high">🔴 High</option>
               </select>
             </div>
 
             <div className="form-field-group">
-              <label htmlFor="edit-category">Category</label>
-              <select
-                id="edit-category"
-                name="category"
-                value={formData.category}
+              <label htmlFor="edit-due_date">Due Date</label>
+              <input
+                id="edit-due_date"
+                name="due_date"
+                type="date"
+                value={formData.due_date || ''}
                 onChange={handleChange}
-              >
-                <option value="Work">Work</option>
-                <option value="Personal">Personal</option>
-                <option value="Study">Study</option>
-                <option value="Health">Health</option>
-              </select>
+              />
             </div>
-          </div>
-
-          <div className="form-field-group">
-            <label htmlFor="edit-due_date">Due Date</label>
-            <input
-              id="edit-due_date"
-              name="due_date"
-              type="date"
-              value={formData.due_date}
-              onChange={handleChange}
-            />
           </div>
 
           <div className="modal-action-bar">

@@ -123,42 +123,6 @@
   cursor: default;
 }
 
-/* Demo Switch Button */
-.demo-switch-box {
-  margin: 14px 6px 8px;
-  padding: 10px;
-  background: #fdfcff;
-  border: 1px dashed #d8b4fe;
-  border-radius: 10px;
-  text-align: center;
-}
-
-.demo-switch-label {
-  display: block;
-  font-size: 10px;
-  text-transform: uppercase;
-  color: #77738a;
-  font-weight: 700;
-  margin-bottom: 5px;
-}
-
-.btn-switch-role {
-  width: 100%;
-  padding: 5px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  background: #6d28d9;
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.btn-switch-role:hover {
-  background: #5b21b6;
-}
-
 /* Sidebar Footer User Card */
 .sidebar-user-card {
   padding: 14px 16px;
@@ -288,17 +252,6 @@
   display: flex;
   align-items: center;
   gap: 18px;
-}
-
-.demo-mode-pill {
-  background: #fef3c7;
-  color: #92400e;
-  border: 1px solid #fde68a;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 999px;
-  letter-spacing: 0.4px;
 }
 
 .notification-wrapper {

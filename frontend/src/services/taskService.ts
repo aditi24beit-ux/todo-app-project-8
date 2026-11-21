@@ -1,34 +1,47 @@
 import api from './api';
-import type { Task, TaskFormData } from '../types';
+import type { Task, TaskCreateData, TaskUpdateData, TaskFilterParams } from '../types';
 
 const taskService = {
-  // GET /api/tasks — list all tasks for the logged-in user
-  async getTasks(): Promise<Task[]> {
-    const response = await api.get<Task[]>('/api/tasks');
+  // GET /tasks/ — list tasks for current user with optional filtering, search, and sorting
+  async getTasks(params?: TaskFilterParams): Promise<Task[]> {
+    const response = await api.get<Task[]>('/tasks/', { params });
     return response.data;
   },
 
-  // GET /api/tasks/:id — get a single task
+  // GET /tasks/{task_id} — get a single task
   async getTask(id: number): Promise<Task> {
-    const response = await api.get<Task>(`/api/tasks/${id}`);
+    const response = await api.get<Task>(`/tasks/${id}`);
     return response.data;
   },
 
-  // POST /api/tasks — create a new task
-  async createTask(data: TaskFormData): Promise<Task> {
-    const response = await api.post<Task>('/api/tasks', data);
+  // POST /tasks/ — create a new task
+  async createTask(data: TaskCreateData): Promise<Task> {
+    const payload: TaskCreateData = {
+      title: data.title.trim(),
+      description: data.description?.trim() || null,
+      priority: data.priority || 'medium',
+      due_date: data.due_date || null,
+    };
+    const response = await api.post<Task>('/tasks/', payload);
     return response.data;
   },
 
-  // PUT /api/tasks/:id — update a task
-  async updateTask(id: number, data: Partial<TaskFormData>): Promise<Task> {
-    const response = await api.put<Task>(`/api/tasks/${id}`, data);
+  // PATCH /tasks/{task_id} — partially update an existing task
+  async updateTask(id: number, data: TaskUpdateData): Promise<Task> {
+    const payload: TaskUpdateData = {};
+    if (data.title !== undefined) payload.title = data.title.trim();
+    if (data.description !== undefined) payload.description = data.description?.trim() || null;
+    if (data.status !== undefined) payload.status = data.status;
+    if (data.priority !== undefined) payload.priority = data.priority;
+    if (data.due_date !== undefined) payload.due_date = data.due_date || null;
+
+    const response = await api.patch<Task>(`/tasks/${id}`, payload);
     return response.data;
   },
 
-  // DELETE /api/tasks/:id — delete a task
+  // DELETE /tasks/{task_id} — delete a task
   async deleteTask(id: number): Promise<void> {
-    await api.delete(`/api/tasks/${id}`);
+    await api.delete(`/tasks/${id}`);
   },
 };
 

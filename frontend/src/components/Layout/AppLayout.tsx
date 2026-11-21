@@ -9,7 +9,7 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
-  const { user, logout, isDemoMode, login } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -20,17 +20,6 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
   const handleLogout = () => {
     logout();
     navigate('/login');
-  };
-
-  const handleQuickSwitchRole = async () => {
-    // Demo mode feature: switch easily between user and admin
-    if (isAdmin) {
-      await login({ email: 'user@taskflow.demo', password: 'user123' });
-      navigate('/dashboard');
-    } else {
-      await login({ email: 'admin@taskflow.demo', password: 'admin123' });
-      navigate('/admin');
-    }
   };
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
@@ -121,21 +110,6 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
             </>
           )}
 
-          {/* User / Admin View Switcher for Demo Mode */}
-          {isDemoMode && (
-            <div className="demo-switch-box">
-              <span className="demo-switch-label">Role Mode</span>
-              <button
-                type="button"
-                className="btn-switch-role"
-                onClick={handleQuickSwitchRole}
-                title="Switch demo account"
-              >
-                Switch to {isAdmin ? 'User View' : 'Admin View'}
-              </button>
-            </div>
-          )}
-
           <div className="sidebar-divider" />
 
           <div className="nav-static-item">
@@ -164,6 +138,7 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
             className="btn-sidebar-logout"
             onClick={handleLogout}
             title="Log out"
+            aria-label="Log out"
           >
             ↪
           </button>
@@ -187,12 +162,6 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
           </div>
 
           <div className="topbar-right">
-            {isDemoMode && (
-              <span className="demo-mode-pill">
-                ⚡ DEMO MODE
-              </span>
-            )}
-
             {/* Notification Bell */}
             <div className="notification-wrapper">
               <button
@@ -209,10 +178,10 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
                 <div className="notification-popover">
                   <div className="notification-header">Notifications</div>
                   <div className="notification-item">
-                    <strong>Demo Mode Active:</strong> All changes persist in your browser.
+                    <strong>Workspace active:</strong> Connected to FastAPI backend.
                   </div>
                   <div className="notification-item">
-                    <strong>Backend status:</strong> Running frontend independently until FastAPI is connected.
+                    <strong>Role:</strong> Authenticated as {isAdmin ? 'System Administrator' : 'Standard User'}.
                   </div>
                 </div>
               )}

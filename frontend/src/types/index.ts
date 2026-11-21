@@ -1,27 +1,12 @@
-// Task types
-export interface Task {
-  id: number;
-  user_id: number;
-  title: string;
-  description: string;
-  status: 'pending' | 'in-progress' | 'completed';
-  priority: 'low' | 'medium' | 'high';
-  category?: string;
-  due_date: string;
-  created_at: string;
-  owner_name?: string;
-}
-
-export type TaskFormData = Omit<Task, 'id' | 'user_id' | 'created_at' | 'owner_name'>;
-
-// User / Auth types
+// User & Auth types matching FastAPI UserResponse & TokenResponse
 export interface User {
   id: number;
   name: string;
   email: string;
-  role?: 'admin' | 'user';
-  status?: 'active' | 'inactive';
+  role: 'user' | 'admin';
+  is_active: boolean;
   created_at?: string;
+  updated_at?: string;
 }
 
 export interface LoginCredentials {
@@ -35,28 +20,58 @@ export interface RegisterData {
   password: string;
 }
 
-export interface AuthResponse {
+export interface TokenResponse {
   access_token: string;
   token_type: string;
   user: User;
 }
 
-// Activity Log for Admin
-export interface ActivityItem {
-  id: string;
-  user_name: string;
-  action: string;
-  timestamp: string;
+export interface UserStatusUpdate {
+  is_active: boolean;
 }
 
-// Admin Metrics
+// Task types matching FastAPI TaskCreate, TaskUpdate, TaskResponse
+export type TaskPriority = 'low' | 'medium' | 'high';
+export type TaskStatus = 'pending' | 'completed';
+
+export interface Task {
+  id: number;
+  user_id: number;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  due_date: string | null;
+  created_at: string;
+  updated_at: string;
+  owner_name?: string; // Cross-referenced client-side in admin views
+}
+
+export interface TaskCreateData {
+  title: string;
+  description?: string | null;
+  priority?: TaskPriority;
+  due_date?: string | null;
+}
+
+export interface TaskUpdateData {
+  title?: string;
+  description?: string | null;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  due_date?: string | null;
+}
+
+export interface TaskFilterParams {
+  status_filter?: TaskStatus;
+  q?: string;
+  sort?: 'created_at' | 'due_date';
+}
+
+// Admin Statistics matching GET /admin/stats
 export interface AdminStats {
-  registeredUsers: number;
-  totalTasks: number;
-  completedTasks: number;
-  pendingTasks: number;
-  completionRate: number;
-  activeUsers: number;
-  inactiveUsers: number;
-  userGrowth: string;
+  total_users: number;
+  total_tasks: number;
+  pending_tasks: number;
+  completed_tasks: number;
 }

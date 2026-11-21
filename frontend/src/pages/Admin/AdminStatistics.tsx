@@ -1,35 +1,91 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import AppLayout from '../../components/Layout/AppLayout';
-import { demoAdminService } from '../../services/demo/demoAdminService';
-import type { AdminStats } from '../../types';
+import adminService from '../../services/adminService';
+import type { AdminStats, User, Task } from '../../types';
 import './AdminStatistics.css';
+
+interface Contributor {
+  id: number;
+  name: string;
+  role: string;
+  completedCount: number;
+}
 
 export default function AdminStatistics() {
   const [stats, setStats] = useState<AdminStats | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadStats() {
-      const data = await demoAdminService.getStats();
-      setStats(data);
+      setLoading(true);
+      setError(null);
+      try {
+        const [st, uList, tList] = await Promise.all([
+          adminService.getStats(),
+          adminService.getUsers(),
+          adminService.getAllTasks(),
+        ]);
+        setStats(st);
+        setUsers(uList);
+        setTasks(tList);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Failed to load statistics.';
+        setError(msg);
+      } finally {
+        setLoading(false);
+      }
     }
     loadStats();
   }, []);
 
-  const total = stats?.totalTasks ?? 846;
-  const completed = stats?.completedTasks ?? 612;
-  const pending = stats?.pendingTasks ?? 234;
-  const rate = stats?.completionRate ?? 72;
+  const total = stats?.total_tasks ?? tasks.length;
+  const completed = stats?.completed_tasks ?? tasks.filter((t) => t.status === 'completed').length;
+  const pending = stats?.pending_tasks ?? tasks.filter((t) => t.status === 'pending').length;
+  const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
   const pendingRate = 100 - rate;
 
-  const daysData = [
-    { day: 'Mon', value: 58, label: '58 tasks' },
-    { day: 'Tue', value: 84, label: '84 tasks' },
-    { day: 'Wed', value: 92, label: '92 tasks' },
-    { day: 'Thu', value: 76, label: '76 tasks' },
-    { day: 'Fri', value: 110, label: '110 tasks' },
-    { day: 'Sat', value: 34, label: '34 tasks' },
-    { day: 'Sun', value: 45, label: '45 tasks' },
-  ];
+  const activeUsersCount = users.filter((u) => u.is_active).length;
+  const inactiveUsersCount = users.length - activeUsersCount;
+
+  // Real leaderboard calculated from actual tasks
+  const topContributors: Contributor[] = useMemo(() => {
+    return users
+      .map((u) => {
+        const count = tasks.filter((t) => t.user_id === u.id && t.status === 'completed').length;
+        return {
+          id: u.id,
+          name: u.name,
+          role: u.role === 'admin' ? 'Admin' : 'User',
+          completedCount: count,
+        };
+      })
+      .sort((a, b) => b.completedCount - a.completedCount)
+      .slice(0, 5);
+  }, [users, tasks]);
+
+  // Daily distribution calculated from tasks
+  const daysData = useMemo(() => {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const counts = [0, 0, 0, 0, 0, 0, 0];
+
+    tasks.forEach((t) => {
+      if (t.created_at) {
+        const d = new Date(t.created_at).getDay(); // 0 is Sunday
+        const mappedIdx = d === 0 ? 6 : d - 1; // 0=Mon ... 6=Sun
+        counts[mappedIdx] += 1;
+      }
+    });
+
+    const maxCount = Math.max(...counts, 1);
+    return days.map((day, idx) => ({
+      day,
+      value: counts[idx],
+      heightPct: Math.round((counts[idx] / maxCount) * 100),
+    }));
+  }, [tasks]);
 
   return (
     <AppLayout pageTitle="Task Statistics">
@@ -40,31 +96,33 @@ export default function AdminStatistics() {
           </p>
         </div>
 
+        {error && <div className="stats-error-alert" role="alert">{error}</div>}
+
         {/* 4 Stat Cards matching 09-admin-statistics-desktop.svg */}
         <div className="stats-top-grid">
           <div className="stat-overview-card">
             <span className="overview-label">Total tasks</span>
-            <span className="overview-number">{total}</span>
-            <span className="overview-caption text-slate">All time</span>
+            <span className="overview-number">{loading ? '...' : total}</span>
+            <span className="overview-caption text-slate">Workspace aggregate</span>
           </div>
 
           <div className="stat-overview-card">
             <span className="overview-label">Completed</span>
-            <span className="overview-number">{completed}</span>
+            <span className="overview-number">{loading ? '...' : completed}</span>
             <span className="overview-caption text-green">{rate}% completion</span>
           </div>
 
           <div className="stat-overview-card">
             <span className="overview-label">Pending</span>
-            <span className="overview-number">{pending}</span>
+            <span className="overview-number">{loading ? '...' : pending}</span>
             <span className="overview-caption text-amber">{pendingRate}% remaining</span>
           </div>
 
           <div className="stat-overview-card">
             <span className="overview-label">Active users</span>
-            <span className="overview-number">{stats?.activeUsers ?? 103}</span>
+            <span className="overview-number">{loading ? '...' : activeUsersCount}</span>
             <span className="overview-caption text-purple">
-              Of {stats?.registeredUsers ?? 128} registered
+              Of {users.length} registered
             </span>
           </div>
         </div>
@@ -74,8 +132,8 @@ export default function AdminStatistics() {
           {/* Bar Chart: Tasks completed over time */}
           <div className="chart-card-box">
             <div className="chart-card-header">
-              <h3>Tasks completed over time</h3>
-              <span className="chart-card-subtitle">Daily completion velocity</span>
+              <h3>Task Creation Velocity</h3>
+              <span className="chart-card-subtitle">Activity distribution across days</span>
             </div>
 
             <div className="bar-chart-container">
@@ -84,8 +142,8 @@ export default function AdminStatistics() {
                   <div className="bar-column-track">
                     <div
                       className="bar-column-fill"
-                      style={{ height: `${(d.value / 120) * 100}%` }}
-                      title={`${d.day}: ${d.label}`}
+                      style={{ height: `${Math.max(d.heightPct, 8)}%` }}
+                      title={`${d.day}: ${d.value} tasks`}
                     />
                   </div>
                   <span className="bar-day-label">{d.day}</span>
@@ -131,9 +189,9 @@ export default function AdminStatistics() {
               </div>
 
               <div className="workspace-user-ratio">
-                <span className="ratio-title">{stats?.registeredUsers ?? 128} registered users</span>
+                <span className="ratio-title">{users.length} registered users</span>
                 <span className="ratio-sub">
-                  {stats?.activeUsers ?? 103} active · {stats?.inactiveUsers ?? 25} inactive
+                  {activeUsersCount} active · {inactiveUsersCount} inactive
                 </span>
               </div>
             </div>
@@ -145,43 +203,28 @@ export default function AdminStatistics() {
                 <span className="chart-card-subtitle">Most completed tasks</span>
               </div>
 
-              <div className="contributors-list">
-                <div className="contributor-row">
-                  <div className="contributor-rank medal-gold">🥇</div>
-                  <div className="contributor-name-col">
-                    <span className="contributor-name">Priya Shah</span>
-                    <span className="contributor-role">Admin</span>
-                  </div>
-                  <span className="contributor-score">42 completed</span>
+              {topContributors.length === 0 ? (
+                <p className="no-contributors-note">No completed tasks yet.</p>
+              ) : (
+                <div className="contributors-list">
+                  {topContributors.map((c, idx) => {
+                    const medals = ['🥇', '🥈', '🥉'];
+                    const medalClass = ['medal-gold', 'medal-silver', 'medal-bronze'];
+                    return (
+                      <div key={c.id} className="contributor-row">
+                        <div className={`contributor-rank ${idx < 3 ? medalClass[idx] : ''}`}>
+                          {idx < 3 ? medals[idx] : idx + 1}
+                        </div>
+                        <div className="contributor-name-col">
+                          <span className="contributor-name">{c.name}</span>
+                          <span className="contributor-role">{c.role}</span>
+                        </div>
+                        <span className="contributor-score">{c.completedCount} completed</span>
+                      </div>
+                    );
+                  })}
                 </div>
-
-                <div className="contributor-row">
-                  <div className="contributor-rank medal-silver">🥈</div>
-                  <div className="contributor-name-col">
-                    <span className="contributor-name">Aarav Mehta</span>
-                    <span className="contributor-role">User</span>
-                  </div>
-                  <span className="contributor-score">38 completed</span>
-                </div>
-
-                <div className="contributor-row">
-                  <div className="contributor-rank medal-bronze">🥉</div>
-                  <div className="contributor-name-col">
-                    <span className="contributor-name">Kabir Khan</span>
-                    <span className="contributor-role">User</span>
-                  </div>
-                  <span className="contributor-score">29 completed</span>
-                </div>
-
-                <div className="contributor-row">
-                  <div className="contributor-rank">4</div>
-                  <div className="contributor-name-col">
-                    <span className="contributor-name">Rohan Das</span>
-                    <span className="contributor-role">User</span>
-                  </div>
-                  <span className="contributor-score">18 completed</span>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

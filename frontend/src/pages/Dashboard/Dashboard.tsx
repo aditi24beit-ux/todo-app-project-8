@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTasks } from '../../context/TaskContext';
 import AppLayout from '../../components/Layout/AppLayout';
+import type { TaskStatus } from '../../types';
 import './Dashboard.css';
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const { tasks, fetchTasks, updateTask, isLoading } = useTasks();
+  const { tasks, fetchTasks, updateTask, isLoading, error } = useTasks();
   const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'completed'>('all');
 
   useEffect(() => {
@@ -17,14 +18,14 @@ export default function Dashboard() {
   const stats = useMemo(() => {
     const total = tasks.length;
     const completed = tasks.filter((t) => t.status === 'completed').length;
-    const pending = tasks.filter((t) => t.status !== 'completed').length;
+    const pending = tasks.filter((t) => t.status === 'pending').length;
     const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
     return { total, completed, pending, rate };
   }, [tasks]);
 
   const displayedTasks = useMemo(() => {
     if (activeTab === 'pending') {
-      return tasks.filter((t) => t.status !== 'completed');
+      return tasks.filter((t) => t.status === 'pending');
     }
     if (activeTab === 'completed') {
       return tasks.filter((t) => t.status === 'completed');
@@ -32,8 +33,8 @@ export default function Dashboard() {
     return tasks;
   }, [tasks, activeTab]);
 
-  const handleToggleTaskStatus = async (id: number, currentStatus: string) => {
-    const nextStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+  const handleToggleTaskStatus = async (id: number, currentStatus: TaskStatus) => {
+    const nextStatus: TaskStatus = currentStatus === 'completed' ? 'pending' : 'completed';
     await updateTask(id, { status: nextStatus });
   };
 
@@ -45,16 +46,18 @@ export default function Dashboard() {
         {/* Welcome Greeting Banner */}
         <div className="welcome-banner">
           <p className="welcome-text">
-            Good morning, {firstName} 👋 Here’s your day at a glance.
+            Good day, {firstName} 👋 Here’s your workspace at a glance.
           </p>
         </div>
+
+        {error && <div className="dash-error-alert" role="alert">{error}</div>}
 
         {/* 4 Stat Cards matching 03-user-dashboard-desktop.svg */}
         <div className="dash-metrics-grid">
           <div className="dash-metric-card">
             <span className="metric-label">Total tasks</span>
             <span className="metric-value">{stats.total}</span>
-            <span className="metric-subtext trend-purple">↑ 12% this week</span>
+            <span className="metric-subtext trend-purple">In your workspace</span>
           </div>
 
           <div className="dash-metric-card">
@@ -72,7 +75,7 @@ export default function Dashboard() {
           <div className="dash-metric-card">
             <span className="metric-label">Completion rate</span>
             <span className="metric-value">{stats.rate}%</span>
-            <span className="metric-subtext status-purple">You’re on track</span>
+            <span className="metric-subtext status-purple">Overall progress</span>
           </div>
         </div>
 
@@ -82,9 +85,9 @@ export default function Dashboard() {
           <div className="dash-card tasks-card">
             <div className="tasks-card-header">
               <div className="tasks-title-block">
-                <h3>Today’s tasks</h3>
+                <h3>Your Tasks</h3>
                 <span className="tasks-count-badge">
-                  {stats.pending} remaining
+                  {stats.pending} pending
                 </span>
               </div>
               <Link to="/add-task" className="btn-add-dash-task">
@@ -142,15 +145,18 @@ export default function Dashboard() {
                           className={`task-check-circle ${isDone ? 'checked' : ''}`}
                           onClick={() => handleToggleTaskStatus(t.id, t.status)}
                           title={isDone ? 'Mark as pending' : 'Mark as complete'}
+                          aria-label={isDone ? 'Mark as pending' : 'Mark as complete'}
                         >
                           {isDone ? '✓' : ''}
                         </button>
                         <div className="task-title-meta">
                           <span className="task-name">{t.title}</span>
                           <span className="task-subinfo">
-                            {t.category && <span className="category-pill">{t.category}</span>}
+                            <span className={`priority-mini-pill ${t.priority}`}>
+                              {t.priority}
+                            </span>
                             <span>
-                              {t.due_date ? `Due ${t.due_date}` : 'Today · 10:00 AM'}
+                              {t.due_date ? `Due ${t.due_date}` : 'No due date'}
                             </span>
                           </span>
                         </div>
@@ -176,7 +182,7 @@ export default function Dashboard() {
                 <h4>Quick tip</h4>
               </div>
               <p className="tip-body">
-                Break larger tasks into smaller steps to make progress easier and maintain daily momentum.
+                Break larger projects into distinct actionable tasks to keep your workflow clear and stress-free.
               </p>
               <div className="tip-action">
                 <Link to="/tasks" className="tip-link">
@@ -187,7 +193,7 @@ export default function Dashboard() {
 
             {/* Overall Progress Widget */}
             <div className="dash-card progress-widget-card">
-              <h4>Weekly Goal</h4>
+              <h4>Progress Goal</h4>
               <div className="progress-info-row">
                 <span>Completion</span>
                 <strong>{stats.rate}%</strong>

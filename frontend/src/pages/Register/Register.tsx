@@ -9,7 +9,7 @@ export default function Register() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
-  const { register, error, clearError, isLoading, isDemoMode } = useAuth();
+  const { register, error, clearError, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleRegisterSubmit = async (e: FormEvent) => {
@@ -27,11 +27,22 @@ export default function Register() {
     }
 
     try {
-      // In demo mode, this creates a strictly 'user' role account and auto-logs in
-      await register({ name, email, password });
-      navigate('/dashboard');
+      // Backend POST /auth/register creates user and returns UserResponse (no token)
+      await register({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+      });
+
+      // Redirect user to login page with pleasant confirmation message
+      navigate('/login', {
+        state: {
+          registered: true,
+          message: 'Account created successfully! Please sign in with your email and password.',
+        },
+      });
     } catch {
-      // Error handled in AuthContext
+      // Error handled in AuthContext and displayed below
     }
   };
 
@@ -72,13 +83,11 @@ export default function Register() {
             </p>
           </div>
 
-          {isDemoMode && (
-            <div className="demo-reg-pill-info">
-              ⚡ <strong>Simulated Registration:</strong> Creates a local persistent demo account.
+          {displayError && (
+            <div className="register-error-alert" role="alert">
+              {displayError}
             </div>
           )}
-
-          {displayError && <div className="register-error-alert">{displayError}</div>}
 
           <form onSubmit={handleRegisterSubmit} className="register-form-element">
             <div className="form-field-block">
@@ -90,6 +99,7 @@ export default function Register() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                autoComplete="name"
               />
             </div>
 
@@ -102,6 +112,7 @@ export default function Register() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
               />
             </div>
 
@@ -110,10 +121,11 @@ export default function Register() {
               <input
                 id="reg-password"
                 type="password"
-                placeholder="Create a password"
+                placeholder="Create a password (min 6 characters)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="new-password"
               />
             </div>
 
@@ -126,6 +138,7 @@ export default function Register() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+                autoComplete="new-password"
               />
             </div>
 
@@ -139,7 +152,7 @@ export default function Register() {
                 </div>
               </div>
               <span className="admin-provision-note">
-                Admin access is provisioned separately by an authorized administrator.
+                Admin access is provisioned securely through backend administrative policy.
               </span>
             </div>
 

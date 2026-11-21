@@ -1,29 +1,36 @@
 import { useEffect, useState, useMemo } from 'react';
 import AppLayout from '../../components/Layout/AppLayout';
-import { demoAdminService } from '../../services/demo/demoAdminService';
+import adminService from '../../services/adminService';
+import authService from '../../services/authService';
 import type { User } from '../../types';
 import './ManageUsers.css';
 
 export default function ManageUsers() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  // Invite user modal state
+  // Add / Provision user modal state
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [inviteName, setInviteName] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<'user' | 'admin'>('user');
+  const [invitePassword, setInvitePassword] = useState('');
+  const [inviteSubmitting, setInviteSubmitting] = useState(false);
   const [inviteError, setInviteError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadUsers() {
       setLoading(true);
+      setError(null);
       try {
-        const data = await demoAdminService.getAllUsers();
+        const data = await adminService.getUsers();
         setUsers(data);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Failed to load users from backend.';
+        setError(msg);
       } finally {
         setLoading(false);
       }
@@ -48,7 +55,8 @@ export default function ManageUsers() {
     }
 
     if (statusFilter !== 'all') {
-      result = result.filter((u) => u.status === statusFilter);
+      const wantActive = statusFilter === 'active';
+      result = result.filter((u) => u.is_active === wantActive);
     }
 
     return result;
@@ -56,39 +64,55 @@ export default function ManageUsers() {
 
   const handleToggleStatus = async (user: User) => {
     try {
-      const updated = await demoAdminService.toggleUserStatus(user.id);
+      const updated = await adminService.updateUserStatus(user.id, !user.is_active);
       setUsers((prev) => prev.map((u) => (u.id === user.id ? updated : u)));
     } catch (err: unknown) {
-      alert((err as Error).message || 'Failed to update user status.');
+      const msg = err instanceof Error ? err.message : 'Failed to update user status.';
+      alert(msg);
     }
   };
 
   const handleDeleteUser = async (user: User) => {
-    if (!window.confirm(`Are you sure you want to remove user "${user.name}"?`)) return;
+    if (!window.confirm(`Are you sure you want to remove user "${user.name}"? This action cannot be undone.`)) return;
     try {
-      await demoAdminService.deleteUser(user.id);
+      await adminService.deleteUser(user.id);
       setUsers((prev) => prev.filter((u) => u.id !== user.id));
     } catch (err: unknown) {
-      alert((err as Error).message || 'Failed to delete user.');
+      const msg = err instanceof Error ? err.message : 'Failed to delete user.';
+      alert(msg);
     }
   };
 
   const handleInviteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setInviteError(null);
+    if (invitePassword.length < 6) {
+      setInviteError('Temporary password must be at least 6 characters.');
+      return;
+    }
+
+    setInviteSubmitting(true);
     try {
-      const newUser = await demoAdminService.createUser({
-        name: inviteName,
-        email: inviteEmail,
-        role: inviteRole,
+      // Backend registers account via /auth/register
+      await authService.register({
+        name: inviteName.trim(),
+        email: inviteEmail.trim(),
+        password: invitePassword,
       });
-      setUsers((prev) => [newUser, ...prev]);
+
+      // Refresh real users list from /admin/users
+      const updatedUsers = await adminService.getUsers();
+      setUsers(updatedUsers);
+
       setIsInviteModalOpen(false);
       setInviteName('');
       setInviteEmail('');
-      setInviteRole('user');
+      setInvitePassword('');
     } catch (err: unknown) {
-      setInviteError((err as Error).message || 'Failed to invite user.');
+      const msg = err instanceof Error ? err.message : 'Failed to register new user.';
+      setInviteError(msg);
+    } finally {
+      setInviteSubmitting(false);
     }
   };
 
@@ -100,6 +124,8 @@ export default function ManageUsers() {
             View and manage accounts in your workspace.
           </p>
         </div>
+
+        {error && <div className="users-error-alert" role="alert">{error}</div>}
 
         <div className="users-table-card">
           <div className="users-card-header">
@@ -114,7 +140,7 @@ export default function ManageUsers() {
               className="btn-invite-user"
               onClick={() => setIsInviteModalOpen(true)}
             >
-              + Invite user
+              + Add user
             </button>
           </div>
 
@@ -134,6 +160,7 @@ export default function ManageUsers() {
               className="users-select"
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
+              aria-label="Filter by role"
             >
               <option value="all">All roles</option>
               <option value="admin">Admin</option>
@@ -144,6 +171,7 @@ export default function ManageUsers() {
               className="users-select"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
+              aria-label="Filter by status"
             >
               <option value="all">Status: All</option>
               <option value="active">Active</option>
@@ -207,7 +235,7 @@ export default function ManageUsers() {
                                 day: '2-digit',
                                 year: 'numeric',
                               })
-                            : 'Oct 28, 2026'}
+                            : 'N/A'}
                         </span>
                       </td>
 
@@ -215,12 +243,12 @@ export default function ManageUsers() {
                       <td>
                         <button
                           type="button"
-                          className={`btn-toggle-status ${u.status === 'active' ? 'active' : 'inactive'}`}
+                          className={`btn-toggle-status ${u.is_active ? 'active' : 'inactive'}`}
                           onClick={() => handleToggleStatus(u)}
                           title="Click to toggle active/inactive"
                         >
                           <span className="status-indicator-dot" />
-                          <span>{u.status === 'active' ? 'Active' : 'Inactive'}</span>
+                          <span>{u.is_active ? 'Active' : 'Inactive'}</span>
                         </button>
                       </td>
 
@@ -231,15 +259,16 @@ export default function ManageUsers() {
                             type="button"
                             className="btn-user-action"
                             onClick={() => handleToggleStatus(u)}
-                            title={u.status === 'active' ? 'Deactivate user' : 'Activate user'}
+                            title={u.is_active ? 'Deactivate user' : 'Activate user'}
                           >
-                            {u.status === 'active' ? 'Deactivate' : 'Activate'}
+                            {u.is_active ? 'Deactivate' : 'Activate'}
                           </button>
                           <button
                             type="button"
                             className="btn-user-action btn-delete-action"
                             onClick={() => handleDeleteUser(u)}
                             title="Remove user"
+                            aria-label="Remove user"
                           >
                             ✕
                           </button>
@@ -253,23 +282,24 @@ export default function ManageUsers() {
           )}
         </div>
 
-        {/* Invite User Modal */}
+        {/* Add User Modal */}
         {isInviteModalOpen && (
           <div className="modal-overlay" onClick={() => setIsInviteModalOpen(false)}>
             <div className="modal-content" onClick={(e) => e.stopPropagation()}>
               <div className="modal-header">
-                <h2>Invite Workspace User</h2>
+                <h2>Create User Account</h2>
                 <button
                   type="button"
                   className="modal-close"
                   onClick={() => setIsInviteModalOpen(false)}
+                  aria-label="Close modal"
                 >
                   ×
                 </button>
               </div>
 
               {inviteError && (
-                <div className="invite-error-alert">{inviteError}</div>
+                <div className="invite-error-alert" role="alert">{inviteError}</div>
               )}
 
               <form onSubmit={handleInviteSubmit} className="invite-user-form">
@@ -298,15 +328,15 @@ export default function ManageUsers() {
                 </div>
 
                 <div className="form-field-group">
-                  <label htmlFor="invite-role">Assigned role</label>
-                  <select
-                    id="invite-role"
-                    value={inviteRole}
-                    onChange={(e) => setInviteRole(e.target.value as 'user' | 'admin')}
-                  >
-                    <option value="user">User</option>
-                    <option value="admin">Administrator</option>
-                  </select>
+                  <label htmlFor="invite-password">Temporary password</label>
+                  <input
+                    id="invite-password"
+                    type="password"
+                    placeholder="Min 6 characters"
+                    value={invitePassword}
+                    onChange={(e) => setInvitePassword(e.target.value)}
+                    required
+                  />
                 </div>
 
                 <div className="modal-action-bar">
@@ -317,8 +347,8 @@ export default function ManageUsers() {
                   >
                     Cancel
                   </button>
-                  <button type="submit" className="btn-modal-save">
-                    Create User
+                  <button type="submit" className="btn-modal-save" disabled={inviteSubmitting}>
+                    {inviteSubmitting ? 'Registering...' : 'Create Account'}
                   </button>
                 </div>
               </form>

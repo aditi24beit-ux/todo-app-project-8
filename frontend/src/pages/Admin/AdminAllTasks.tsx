@@ -1,13 +1,14 @@
 import { useEffect, useState, useMemo } from 'react';
 import AppLayout from '../../components/Layout/AppLayout';
-import { demoAdminService } from '../../services/demo/demoAdminService';
-import { demoTaskService } from '../../services/demo/demoTaskService';
-import type { Task } from '../../types';
+import adminService from '../../services/adminService';
+import taskService from '../../services/taskService';
+import type { Task, TaskStatus } from '../../types';
 import './AdminAllTasks.css';
 
 export default function AdminAllTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -16,9 +17,27 @@ export default function AdminAllTasks() {
   useEffect(() => {
     async function loadAllTasks() {
       setLoading(true);
+      setError(null);
       try {
-        const all = await demoAdminService.getAllTasks();
-        setTasks(all);
+        const [allTasks, allUsers] = await Promise.all([
+          adminService.getAllTasks(),
+          adminService.getUsers(),
+        ]);
+
+        const userMap = new Map<number, string>();
+        allUsers.forEach((u) => {
+          userMap.set(u.id, u.name);
+        });
+
+        const enriched = allTasks.map((t) => ({
+          ...t,
+          owner_name: userMap.get(t.user_id) || `User #${t.user_id}`,
+        }));
+
+        setTasks(enriched);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Failed to load workspace tasks.';
+        setError(msg);
       } finally {
         setLoading(false);
       }
@@ -63,22 +82,26 @@ export default function AdminAllTasks() {
   }, [tasks, searchQuery, statusFilter, priorityFilter, ownerFilter]);
 
   const handleToggleStatus = async (task: Task) => {
-    const nextStatus = task.status === 'completed' ? 'pending' : 'completed';
+    const nextStatus: TaskStatus = task.status === 'completed' ? 'pending' : 'completed';
     try {
-      const updated = await demoTaskService.updateTask(task.id, { status: nextStatus });
-      setTasks((prev) => prev.map((t) => (t.id === task.id ? updated : t)));
-    } catch {
-      alert('Failed to update task.');
+      const updated = await taskService.updateTask(task.id, { status: nextStatus });
+      setTasks((prev) =>
+        prev.map((t) => (t.id === task.id ? { ...t, status: updated.status } : t))
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to update task.';
+      alert(msg);
     }
   };
 
   const handleDeleteTask = async (task: Task) => {
     if (!window.confirm(`Delete task "${task.title}" across workspace?`)) return;
     try {
-      await demoTaskService.deleteTask(task.id);
+      await taskService.deleteTask(task.id);
       setTasks((prev) => prev.filter((t) => t.id !== task.id));
-    } catch {
-      alert('Failed to delete task.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to delete task.';
+      alert(msg);
     }
   };
 
@@ -90,6 +113,8 @@ export default function AdminAllTasks() {
             Review tasks across every account.
           </p>
         </div>
+
+        {error && <div className="admin-tasks-error-alert" role="alert">{error}</div>}
 
         <div className="admin-tasks-card">
           <div className="admin-tasks-header">
@@ -115,10 +140,10 @@ export default function AdminAllTasks() {
               className="admin-filter-select"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
+              aria-label="Filter by status"
             >
               <option value="all">All status</option>
               <option value="pending">Pending</option>
-              <option value="in-progress">In Progress</option>
               <option value="completed">Completed</option>
             </select>
 
@@ -126,6 +151,7 @@ export default function AdminAllTasks() {
               className="admin-filter-select"
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
+              aria-label="Filter by priority"
             >
               <option value="all">Priority: All</option>
               <option value="high">High</option>
@@ -137,6 +163,7 @@ export default function AdminAllTasks() {
               className="admin-filter-select"
               value={ownerFilter}
               onChange={(e) => setOwnerFilter(e.target.value)}
+              aria-label="Filter by owner"
             >
               <option value="all">Owner: All</option>
               {allOwners.map((owner) => (
@@ -161,8 +188,8 @@ export default function AdminAllTasks() {
               <table className="admin-tasks-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '35%' }}>TASK</th>
-                    <th style={{ width: '20%' }}>ASSIGNED TO</th>
+                    <th style={{ width: '38%' }}>TASK</th>
+                    <th style={{ width: '22%' }}>ASSIGNED TO</th>
                     <th style={{ width: '15%' }}>DUE DATE</th>
                     <th style={{ width: '12%' }}>STATUS</th>
                     <th style={{ width: '10%' }}>PRIORITY</th>
@@ -178,8 +205,8 @@ export default function AdminAllTasks() {
                         <td>
                           <div className="admin-task-cell">
                             <span className="admin-task-title">{t.title}</span>
-                            {t.category && (
-                              <span className="admin-task-cat">{t.category}</span>
+                            {t.description && (
+                              <span className="admin-task-desc-sub">{t.description}</span>
                             )}
                           </div>
                         </td>
@@ -229,6 +256,7 @@ export default function AdminAllTasks() {
                             className="btn-admin-del-task"
                             onClick={() => handleDeleteTask(t)}
                             title="Delete task from workspace"
+                            aria-label="Delete task"
                           >
                             🗑️
                           </button>

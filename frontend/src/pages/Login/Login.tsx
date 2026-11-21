@@ -1,43 +1,44 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { DEMO_CONFIG } from '../../config/demoConfig';
+import authService from '../../services/authService';
 import './Login.css';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => localStorage.getItem('taskflow_remembered_email') || '');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
-  const { login, error, clearError, isLoading, isDemoMode } = useAuth();
+  const [rememberMe, setRememberMe] = useState(() => Boolean(localStorage.getItem('taskflow_remembered_email')));
+  const { login, error, clearError, isLoading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleLoginSubmit = async (e?: FormEvent, customEmail?: string, customPassword?: string) => {
-    if (e) e.preventDefault();
+  const successMessage = (location.state as { registered?: boolean; message?: string } | null)?.message ||
+    ((location.state as { registered?: boolean } | null)?.registered
+      ? 'Registration successful! Please sign in with your credentials.'
+      : null);
+
+  const handleLoginSubmit = async (e: FormEvent) => {
+    e.preventDefault();
     clearError();
 
-    const targetEmail = customEmail ?? email;
-    const targetPassword = customPassword ?? password;
-
     try {
-      await login({ email: targetEmail, password: targetPassword });
-      // Redirect based on role in demo mode
-      const rawUser = localStorage.getItem('user');
-      const userObj = rawUser ? JSON.parse(rawUser) : null;
-      if (userObj?.role === 'admin') {
+      await login({ email: email.trim(), password });
+
+      if (rememberMe) {
+        localStorage.setItem('taskflow_remembered_email', email.trim());
+      } else {
+        localStorage.removeItem('taskflow_remembered_email');
+      }
+
+      const currentUser = authService.getUser();
+      if (currentUser?.role === 'admin') {
         navigate('/admin');
       } else {
         navigate('/dashboard');
       }
     } catch {
-      // Error is set in AuthContext
+      // Error is set in AuthContext and rendered in the alert
     }
-  };
-
-  const handleQuickLogin = (role: 'user' | 'admin') => {
-    const creds = DEMO_CONFIG.accounts[role];
-    setEmail(creds.email);
-    setPassword(creds.password);
-    handleLoginSubmit(undefined, creds.email, creds.password);
   };
 
   return (
@@ -75,18 +76,19 @@ export default function Login() {
             </p>
           </div>
 
-          {isDemoMode && (
-            <div className="demo-notice-banner">
-              <span className="demo-badge">DEMO MODE</span>
-              <p>
-                Simulated frontend environment. Use 1-click access pills below or sign in with your own credentials.
-              </p>
+          {successMessage && (
+            <div className="login-success-alert" role="status">
+              ✓ {successMessage}
             </div>
           )}
 
-          {error && <div className="login-error-alert">{error}</div>}
+          {error && (
+            <div className="login-error-alert" role="alert">
+              {error}
+            </div>
+          )}
 
-          <form onSubmit={(e) => handleLoginSubmit(e)} className="login-form-element">
+          <form onSubmit={handleLoginSubmit} className="login-form-element">
             <div className="form-field-block">
               <label htmlFor="login-email">Email address</label>
               <input
@@ -122,7 +124,9 @@ export default function Login() {
                 />
                 <span>Remember me</span>
               </label>
-              <span className="forgot-password-link">Forgot password?</span>
+              <span className="forgot-password-link" title="Contact administrator for password recovery">
+                Forgot password?
+              </span>
             </div>
 
             <button type="submit" className="btn-signin-primary" disabled={isLoading}>
@@ -141,32 +145,6 @@ export default function Login() {
             <Link to="/register" className="create-account-link">
               Create account
             </Link>
-          </div>
-
-          {/* Quick Access Pills matching Shraddha's 01-login-desktop.svg design */}
-          <div className="quick-access-section">
-            <div className="quick-access-title">ONE-CLICK DEMO ACCESS:</div>
-            <div className="quick-access-buttons">
-              <button
-                type="button"
-                className="btn-access-pill pill-user"
-                onClick={() => handleQuickLogin('user')}
-                title="Login with user account: user@taskflow.demo"
-              >
-                USER ACCESS
-                <span className="pill-creds">user@taskflow.demo</span>
-              </button>
-
-              <button
-                type="button"
-                className="btn-access-pill pill-admin"
-                onClick={() => handleQuickLogin('admin')}
-                title="Login with admin account: admin@taskflow.demo"
-              >
-                ADMIN ACCESS
-                <span className="pill-creds">admin@taskflow.demo</span>
-              </button>
-            </div>
           </div>
         </div>
       </div>

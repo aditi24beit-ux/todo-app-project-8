@@ -1,16 +1,14 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import taskService from '../services/taskService';
-import { demoTaskService } from '../services/demo/demoTaskService';
-import { DEMO_CONFIG } from '../config/demoConfig';
-import type { Task, TaskFormData } from '../types';
+import type { Task, TaskCreateData, TaskUpdateData, TaskFilterParams } from '../types';
 
 interface TaskContextType {
   tasks: Task[];
   isLoading: boolean;
   error: string | null;
-  fetchTasks: () => Promise<void>;
-  addTask: (data: TaskFormData) => Promise<void>;
-  updateTask: (id: number, data: Partial<TaskFormData>) => Promise<void>;
+  fetchTasks: (params?: TaskFilterParams) => Promise<void>;
+  addTask: (data: TaskCreateData) => Promise<Task>;
+  updateTask: (id: number, data: TaskUpdateData) => Promise<Task>;
   deleteTask: (id: number) => Promise<void>;
   clearError: () => void;
 }
@@ -18,56 +16,59 @@ interface TaskContextType {
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
 export function TaskProvider({ children }: { children: ReactNode }) {
-  const isDemoMode = DEMO_CONFIG.isDemoMode;
-  const activeTaskService = isDemoMode ? demoTaskService : taskService;
-
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTasks = useCallback(async () => {
+  const fetchTasks = useCallback(async (params?: TaskFilterParams) => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await activeTaskService.getTasks();
+      const data = await taskService.getTasks(params);
       setTasks(data);
-    } catch {
-      setError('Failed to fetch tasks.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to fetch tasks.';
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
-  }, [activeTaskService]);
+  }, []);
 
-  const addTask = async (data: TaskFormData) => {
+  const addTask = async (data: TaskCreateData): Promise<Task> => {
     setError(null);
     try {
-      const newTask = await activeTaskService.createTask(data);
+      const newTask = await taskService.createTask(data);
       setTasks((prev) => [newTask, ...prev]);
+      return newTask;
     } catch (err: unknown) {
-      setError('Failed to create task.');
-      throw new Error('Failed to create task.', { cause: err });
+      const msg = err instanceof Error ? err.message : 'Failed to create task.';
+      setError(msg);
+      throw new Error(msg, { cause: err });
     }
   };
 
-  const updateTask = async (id: number, data: Partial<TaskFormData>) => {
+  const updateTask = async (id: number, data: TaskUpdateData): Promise<Task> => {
     setError(null);
     try {
-      const updated = await activeTaskService.updateTask(id, data);
+      const updated = await taskService.updateTask(id, data);
       setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+      return updated;
     } catch (err: unknown) {
-      setError('Failed to update task.');
-      throw new Error('Failed to update task.', { cause: err });
+      const msg = err instanceof Error ? err.message : 'Failed to update task.';
+      setError(msg);
+      throw new Error(msg, { cause: err });
     }
   };
 
-  const deleteTask = async (id: number) => {
+  const deleteTask = async (id: number): Promise<void> => {
     setError(null);
     try {
-      await activeTaskService.deleteTask(id);
+      await taskService.deleteTask(id);
       setTasks((prev) => prev.filter((t) => t.id !== id));
     } catch (err: unknown) {
-      setError('Failed to delete task.');
-      throw new Error('Failed to delete task.', { cause: err });
+      const msg = err instanceof Error ? err.message : 'Failed to delete task.';
+      setError(msg);
+      throw new Error(msg, { cause: err });
     }
   };
 
