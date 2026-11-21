@@ -87,8 +87,8 @@ If a test fails, log it in [bug-report.md](bug-report.md). Update field names an
 | TC-078 | API (FastAPI) | Admin API with user token | Call an admin-only API using a normal user token | 403 forbidden |  | Not Run |
 | TC-079 | API (FastAPI) | Admin API without token | Call an admin-only API with no token | 401 unauthorized |  | Not Run |
 | TC-080 | API (FastAPI) | User gets only own tasks | Call GET tasks with User A token | Only User A tasks returned |  | Not Run |
-| | TC-081 | Database (PostgreSQL) | Role stored for each user | Open users table in pgAdmin | Each user has a role (user or admin) | users.role is NOT NULL and allows only user or admin; test user shows role = user | Pass |
-TC-082 | Database (PostgreSQL) | New user default role | Register a new user; check users table | Role is user by default |  | Not Run |
+| TC-081 | Database (PostgreSQL) | Role stored for each user | Open users table in pgAdmin | Each user has a role (user or admin) | users.role is NOT NULL and allows only user or admin; test user shows role = user | Pass |
+| TC-082 | Database (PostgreSQL) | New user default role | Register a new user; check users table | Role is user by default | Role is user by default | Pass |
 | TC-083 | Database (PostgreSQL) | Task linked to correct user | Add a task as User A; check tasks table | user_id matches User A id |  | Not Run |
 | TC-084 | Security / General | Open page without login | Open Dashboard URL while logged out | Redirected to Login |  | Not Run |
 | TC-085 | Security / General | Mobile layout | Open the app in a phone-size window | Layout fits; buttons usable |  | Not Run |
@@ -102,5 +102,19 @@ TC-082 | Database (PostgreSQL) | New user default role | Register a new user; ch
 | TC-093 | Database (PostgreSQL) | Task without title rejected | INSERT INTO tasks (user_id) VALUES (9999) | Error: null value in column title | ERROR: null value in column title of relation tasks violates not-null constraint | Pass |
 | TC-094 | Database (PostgreSQL) | Invalid task status rejected | INSERT a task with status done | Error: check constraint violated | ERROR: new row for relation tasks violates check constraint tasks_status_check | Pass |
 | TC-095 | Database (PostgreSQL) | User without name rejected | INSERT INTO users without the name column | Error: null value in column name | ERROR: null value in column name of relation users violates not-null constraint | Pass |
+| TC-096 | Auth API | Register with valid details | POST /auth/register with name, email, password | 201 Created | 201 Created | Pass |
+| TC-097 | Auth API | Register with duplicate email | POST /auth/register with same email again | 409 Conflict | 409 Conflict | Pass |
+| TC-098 | Auth API | Login with wrong password | POST /auth/login with wrong password | 401 Unauthorized | 401 Unauthorized | Pass |
+| TC-099 | Auth API | Login with valid credentials | POST /auth/login with correct email and password | 200 with access token | 200 with access token | Pass |
+| TC-100 | Tasks API | Get tasks when none exist | GET /tasks/ with valid token | 200 with empty list | 200 with empty list | Pass |
+| TC-101 | Tasks API | Create task with valid data | POST /tasks/ with title, description, priority, due_date | 201, status pending | 201, status pending | Pass |
+| TC-102 | Tasks API | Get tasks after creating one | GET /tasks/ with valid token | 200 with task in list | 200 with task in list | Pass |
+| TC-103 | Tasks API | Create task without title | POST /tasks/ without title | 422 Validation Error | 422, title Field required | Pass |
+| TC-104 | Auth API | Access tasks with expired token | GET /tasks/ with 4 hour old token | 401 Unauthorized | 401 Invalid or Expired token | Pass |
+| TC-105 | Tasks API | Create task with invalid priority | POST /tasks/ with priority "urgent" | 422 Validation Error | 500 Internal Server Error (BUG-001) | Fail |
+| TC-106 | Tasks API | Update task status to completed | PATCH /tasks/6 with status completed | 200, status completed | 200, status completed | Pass |
+| TC-107 | Tasks API | Update task with invalid status | PATCH /tasks/6 with status "done" | 422 Validation Error | 500 Internal Server Error (BUG-002) | Fail |
+| TC-108 | Tasks API | Delete own task | DELETE /tasks/7 | 200, task deleted | 200, Task deleted successfully | Pass |
+| TC-109 | Tasks API | Verify task removed after delete | GET /tasks/ after delete | Task 7 not in list | Task 7 not in list | Pass |
 
 Status values: Not Run, Pass, Fail, Blocked
