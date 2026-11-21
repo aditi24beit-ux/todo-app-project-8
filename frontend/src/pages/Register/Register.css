@@ -1,0 +1,202 @@
+/* ── Register Screen CSS matching 02-registration-desktop.svg & mobile ── */
+.register-screen {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f8f7fc;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #24164a;
+}
+
+/* ── Hero Left Panel ── */
+.register-hero-panel {
+  flex: 0 0 42%;
+  background: #6d28d9;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 60px 60px;
+  box-sizing: border-box;
+}
+
+.register-brand-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.register-hero-text {
+  margin: auto 0;
+}
+
+.register-hero-text .hero-headline {
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #ffffff;
+  margin: 0 0 18px 0;
+  letter-spacing: -0.4px;
+}
+
+.register-hero-text .hero-subline {
+  font-size: 16px;
+  color: #e9ddff;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 380px;
+}
+
+.register-hero-footer {
+  font-size: 12px;
+  color: #c4b5fd;
+  opacity: 0.8;
+}
+
+/* ── Form Right Panel ── */
+.register-form-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 520px;
+  background: #ffffff;
+  border: 1px solid #e9e5f2;
+  border-radius: 20px;
+  padding: 40px 44px;
+  box-shadow: 0 8px 30px rgba(109, 40, 217, 0.04);
+  box-sizing: border-box;
+}
+
+.register-card-header h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #24164a;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.4px;
+}
+
+.register-card-subtitle {
+  font-size: 13px;
+  color: #77738a;
+  margin: 0 0 20px 0;
+}
+
+.register-error-alert {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+
+/* Form Elements */
+.register-form-element {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.account-type-box {
+  background-color: #f5f3ff;
+  border: 1.5px solid #6d28d9;
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+}
+
+.radio-user-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6d28d9;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.radio-dot {
+  font-size: 15px;
+}
+
+.admin-provision-note {
+  font-size: 11px;
+  color: #77738a;
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.btn-register-primary {
+  height: 44px;
+  background-color: #6d28d9;
+  color: #ffffff;
+  border: none;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-top: 10px;
+  box-shadow: 0 4px 14px rgba(109, 40, 217, 0.25);
+}
+
+.btn-register-primary:hover:not(:disabled) {
+  background-color: #5b21b6;
+  transform: translateY(-1px);
+}
+
+.btn-register-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.signin-prompt-row {
+  text-align: center;
+  font-size: 12px;
+  color: #77738a;
+  margin-top: 22px;
+}
+
+.signin-link {
+  color: #6d28d9;
+  font-weight: 700;
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+.signin-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Responsive Mobile ── */
+@media (max-width: 900px) {
+  .register-screen {
+    flex-direction: column;
+  }
+
+  .register-hero-panel {
+    flex: none;
+    padding: 36px 24px;
+    text-align: center;
+    align-items: center;
+  }
+
+  .register-hero-text .hero-headline {
+    font-size: 30px;
+  }
+
+  .register-hero-footer {
+    display: none;
+  }
+
+  .register-card {
+    padding: 28px 20px;
+    max-width: 100%;
+  }
+}
