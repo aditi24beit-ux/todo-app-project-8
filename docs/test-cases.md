@@ -88,7 +88,7 @@ If a test fails, log it in [bug-report.md](bug-report.md). Update field names an
 | TC-079 | API (FastAPI) | Admin API without token | Call an admin-only API with no token | 401 unauthorized |  | Not Run |
 | TC-080 | API (FastAPI) | User gets only own tasks | Call GET tasks with User A token | Only User A tasks returned |  | Not Run |
 | TC-081 | Database (PostgreSQL) | Role stored for each user | Open users table in pgAdmin | Each user has a role (user or admin) | users.role is NOT NULL and allows only user or admin; test user shows role = user | Pass |
-| TC-082 | Database (PostgreSQL) | New user default role | Register a new user; check users table | Role is user by default | Role is user by default | Pass |
+| TC-082 | Database (PostgreSQL) | New user default role | Register a new user; check users table | Role is user by default | | Not Run |
 | TC-083 | Database (PostgreSQL) | Task linked to correct user | Add a task as User A; check tasks table | user_id matches User A id |  | Not Run |
 | TC-084 | Security / General | Open page without login | Open Dashboard URL while logged out | Redirected to Login |  | Not Run |
 | TC-085 | Security / General | Mobile layout | Open the app in a phone-size window | Layout fits; buttons usable |  | Not Run |
