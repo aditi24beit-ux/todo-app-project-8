@@ -1,6 +1,6 @@
 # Test Cases - To-Do App (GRP8)
 
-Tester: Adhikesh P Kannan | Branch: feature/testing-docs | Stack: React + TypeScript, FastAPI, PostgreSQL | Roles: User and Admin
+Tester: Adhikesh P Kannan | Branch: feature/testing-db-results | Stack: React + TypeScript, FastAPI, PostgreSQL | Roles: User and Admin
 
 How to use: follow Steps, write what really happened in Actual Result, set Status to Pass, Fail or Blocked.
 If a test fails, log it in [bug-report.md](bug-report.md). Update field names and status codes once the real app is ready.
@@ -116,5 +116,31 @@ If a test fails, log it in [bug-report.md](bug-report.md). Update field names an
 | TC-107 | Tasks API | Update task with invalid status | PATCH /tasks/6 with status "done" | 422 Validation Error | 500 Internal Server Error (BUG-002) | Fail |
 | TC-108 | Tasks API | Delete own task | DELETE /tasks/7 | 200, task deleted | 200, Task deleted successfully | Pass |
 | TC-109 | Tasks API | Verify task removed after delete | GET /tasks/ after delete | Task 7 not in list | Task 7 not in list | Pass |
+| TC-110 | Auth API | Access tasks without token | GET /tasks/ without Authorize | 401 Unauthorized | 401 Not authenticated | Pass |
+| TC-111 | Auth API | Get own profile with valid token | Authorize; GET /auth/me | 200 with own name, email, role; no password shown | 200, Tester One, tester1@example.com, role user, no password | Pass |
+| TC-112 | Tasks API | Get own task by id | GET /tasks/6 with valid token | 200 with task 6 details | 200, id 6, title My first task | Pass |
+| TC-113 | Tasks API | Get task that does not exist | GET /tasks/9999 with valid token | 404 Task not found | 404, "Task not found" | Pass |
+| TC-114 | Tasks API | Filter tasks by status completed | GET /tasks/?status_filter=completed | 200, only completed tasks | 200, only task 6 (completed) | Pass |
+| TC-115 | Tasks API | Filter tasks by status pending | GET /tasks/?status_filter=pending | 200, empty list (no pending tasks) | 200, [] | Pass |
+| TC-116 | Tasks API | Search tasks by keyword | GET /tasks/?q=first | 200, tasks with "first" in title | 200, task 6 "My first task" | Pass |
+| TC-117 | Tasks API | Search with keyword that matches nothing | GET /tasks/?q=zzz | 200, empty list | 200, [] | Pass |
+| TC-118 | Tasks API | Filter tasks with invalid status value | GET /tasks/?status_filter=abc | 200 with empty list or 422, no crash | 200, [] (invalid filter returns no tasks) | Pass |
+| TC-119 | Tasks API | Sort tasks by due_date | GET /tasks/?sort=due_date | 200, tasks sorted by due date | 200, task 6 returned (only one task, order not verifiable) | Pass |
+| TC-120 | Tasks API | Sort tasks with invalid sort value | GET /tasks/?sort=abc | 200 or 422, no crash | 200, task 6 returned (invalid sort ignored) | Pass |
+| TC-121 | Tasks API | User cannot read another user's task | tester2 creates task 16; login as tester1; GET /tasks/16 | 404 Task not found | 404, "Task not found" | Pass |
+| TC-122 | Tasks API | Task list shows only own tasks | tester2 has task 16; login as tester1; GET /tasks/ | 200, only tester1's tasks (id 6), no task 16 | 200, only id 6 returned, task 16 not shown | Pass |
+| TC-123 | Admin API | Admin gets all users | Login as admin; GET /admin/users | 200 with list of users, no passwords | 200, 2 users (id 5 user, id 8 admin), no password shown | Pass |
+| TC-124 | Admin API | Admin gets user by id | GET /admin/users/5 | 200 with user 5 details | 200, id 5, Tester One, tester1@example.com, role user | Pass |
+| TC-125 | Admin API | Admin gets user that does not exist | GET /admin/users/9999 | 404 User not found | 404, "User not found" | Pass |
+| TC-126 | Admin API | Admin gets all tasks of all users | GET /admin/tasks | 200 with tasks of all users | 200, task 6 (user 5) and task 16 (user 8) | Pass |
+| TC-127 | Admin API | Admin gets stats | GET /admin/stats | 200 with correct counts | 200, total_users 2, total_tasks 2, pending_tasks 1, completed_tasks 1 (matches data) | Pass |
+| TC-128 | Admin API | Admin root endpoint | GET /admin/ | 200 with message | 200, "Admin API is Working". Observation: works without token (no lock) | Pass |
+| TC-129 | Admin API | Admin deactivates a user | PATCH /admin/users/5/status with is_active false | 200, is_active false | 200, tester1 is_active false | Pass |
+| TC-130 | Admin API | Admin activates a user again | PATCH /admin/users/5/status with is_active true | 200, is_active true | 200, tester1 is_active true | Pass |
+| TC-131 | Admin API | Admin deletes a user | Register deleteme@example.com (id 9); DELETE /admin/users/9 | 200 user deleted | 200, "User deleted successfully" | Pass |
+| TC-132 | Admin API | Admin deletes a user that is already deleted | DELETE /admin/users/9 again | 404 User not found | 404, "User not found" | Pass |
+| TC-133 | Admin API | Get deleted user | GET /admin/users/9 | 404 User not found | 404, "User not found" | Pass |
+| TC-134 | Admin API | Normal user cannot use admin endpoint | Login as tester1 (role user); GET /admin/users | 403 Forbidden | 403, "Admin access required" | Pass |
+| TC-135 | Admin API | Admin endpoint without token | GET /admin/users without Authorize | 401 Unauthorized | 401, "Not authenticated" | Pass |
 
 Status values: Not Run, Pass, Fail, Blocked
