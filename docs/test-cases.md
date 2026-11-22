@@ -1,6 +1,6 @@
 # Test Cases - To-Do App (GRP8)
 
-Tester: Adhikesh P Kannan | Branch: feature/testing-docs | Stack: React + TypeScript, FastAPI, PostgreSQL | Roles: User and Admin
+Tester: Adhikesh P Kannan | Branch: feature/testing-db-results | Stack: React + TypeScript, FastAPI, PostgreSQL | Roles: User and Admin
 
 How to use: follow Steps, write what really happened in Actual Result, set Status to Pass, Fail or Blocked.
 If a test fails, log it in [bug-report.md](bug-report.md). Update field names and status codes once the real app is ready.
@@ -84,14 +84,76 @@ If a test fails, log it in [bug-report.md](bug-report.md). Update field names an
 | TC-075 | Admin Dashboard | Empty state | Open admin lists when no tasks exist | Friendly empty message; no crash |  | Not Run |
 | TC-076 | API (FastAPI) | Login API valid | POST login with correct email and password at /docs | Success response with a token |  | Not Run |
 | TC-077 | API (FastAPI) | Login API wrong password | POST login with wrong password | 401 or error message; no token |  | Not Run |
-| TC-078 | API (FastAPI) | Admin API with user token | Call an admin-only API using a normal user token | 403 forbidden |  | Not Run |
-| TC-079 | API (FastAPI) | Admin API without token | Call an admin-only API with no token | 401 unauthorized |  | Not Run |
-| TC-080 | API (FastAPI) | User gets only own tasks | Call GET tasks with User A token | Only User A tasks returned |  | Not Run |
-| TC-081 | Database (PostgreSQL) | Role stored for each user | Open users table in pgAdmin | Each user has a role (user or admin) |  | Not Run |
-| TC-082 | Database (PostgreSQL) | New user default role | Register a new user; check users table | Role is user by default |  | Not Run |
-| TC-083 | Database (PostgreSQL) | Task linked to correct user | Add a task as User A; check tasks table | user_id matches User A id |  | Not Run |
+| TC-078 | API (FastAPI) | Admin API with user token | Call an admin-only API using a normal user token | 403 forbidden |  | Pass |
+| TC-079 | API (FastAPI) | Admin API without token | Call an admin-only API with no token | 401 unauthorized |  | Pass |
+| TC-080 | API (FastAPI) | User gets only own tasks | Call GET tasks with User A token | Only User A tasks returned |  | Pass |
+| TC-081 | Database (PostgreSQL) | Role stored for each user | Open users table in pgAdmin | Each user has a role (user or admin) | users.role is NOT NULL and allows only user or admin; test user shows role = user | Pass |
+| TC-082 | Database (PostgreSQL) | New user default role | Register a new user via API; check users table | Role is user by default | User id 5 (registered via Swagger) shows role = user | Pass |
+| TC-083 | Database (PostgreSQL) | Task linked to correct user | Add a task as User A; check tasks table | user_id matches User A id |  | Pass |
 | TC-084 | Security / General | Open page without login | Open Dashboard URL while logged out | Redirected to Login |  | Not Run |
 | TC-085 | Security / General | Mobile layout | Open the app in a phone-size window | Layout fits; buttons usable |  | Not Run |
 | TC-086 | Security / General | Backend stopped | Stop the backend server; try any action | Clear error message; no blank screen |  | Not Run |
+| TC-087 | Database (PostgreSQL) | Valid user insert with defaults | Run INSERT INTO users with valid name, email, password_hash, role; then SELECT * FROM users | Row created; is_active is true; created_at filled automatically | Row created with id 1, is_active true, created_at filled | Pass |
+| TC-088 | Database (PostgreSQL) | Duplicate email rejected | Insert a second user with the same email | Error: unique constraint violated | ERROR: duplicate key value violates unique constraint users_email_key | Pass |
+| TC-089 | Database (PostgreSQL) | Invalid role rejected | Insert a user with role superadmin | Error: check constraint violated | ERROR: new row for relation users violates check constraint users_role_check | Pass |
+| TC-090 | Database (PostgreSQL) | Task defaults | Insert a task with only user_id and title; SELECT * FROM tasks | status is pending and priority is medium | status pending, priority medium, description and due_date null | Pass |
+| TC-091 | Database (PostgreSQL) | Deleting a user deletes only their tasks | Create 2 users (id 6 with 2 tasks, id 7 with 1 task); DELETE user id 6; SELECT tasks of users 6 and 7 | Tasks of user 6 are removed (CASCADE); tasks of user 7 remain unaffected | After deleting user 6, only task id 15 (user 7, B task 1) remained; both tasks of user 6 were removed and user 7's task was unaffected | Pass |
+| TC-092 | Database (PostgreSQL) | Task with non-existing user_id rejected | INSERT INTO tasks (user_id, title) VALUES (9999, 'Test task') | Error: foreign key violated | ERROR: insert or update on table tasks violates foreign key constraint fk_tasks_user | Pass |
+| TC-093 | Database (PostgreSQL) | Task without title rejected | INSERT INTO tasks (user_id) VALUES (5) using an existing valid user_id | Error: null value in column title | ERROR: null value in column "title" of relation "tasks" violates not-null constraint | Pass |
+| TC-094 | Database (PostgreSQL) | Invalid task status rejected | INSERT a task with status done | Error: check constraint violated | ERROR: new row for relation tasks violates check constraint tasks_status_check | Pass |
+| TC-095 | Database (PostgreSQL) | User without name rejected | INSERT INTO users without the name column | Error: null value in column name | ERROR: null value in column name of relation users violates not-null constraint | Pass |
+| TC-096 | Auth API | Register with valid details | POST /auth/register with name, email, password | 201 Created | 201 Created | Pass |
+| TC-097 | Auth API | Register with duplicate email | POST /auth/register with same email again | 409 Conflict | 409 Conflict | Pass |
+| TC-098 | Auth API | Login with wrong password | POST /auth/login with wrong password | 401 Unauthorized | 401 Unauthorized | Pass |
+| TC-099 | Auth API | Login with valid credentials | POST /auth/login with correct email and password | 200 with access token | 200 with access token | Pass |
+| TC-100 | Tasks API | Get tasks when none exist | GET /tasks/ with valid token | 200 with empty list | 200 with empty list | Pass |
+| TC-101 | Tasks API | Create task with valid data | POST /tasks/ with title, description, priority, due_date | 201, status pending | 201, status pending | Pass |
+| TC-102 | Tasks API | Get tasks after creating one | GET /tasks/ with valid token | 200 with task in list | 200 with task in list | Pass |
+| TC-103 | Tasks API | Create task without title | POST /tasks/ without title | 422 Validation Error | 422, title Field required | Pass |
+| TC-104 | Auth API | Access tasks with expired token | GET /tasks/ with 4 hour old token | 401 Unauthorized | 401 Invalid or Expired token | Pass |
+| TC-105 | Tasks API | Create task with invalid priority | POST /tasks/ with priority "urgent" | 422 Validation Error | Initially 500 (BUG-001). Retest on 22 Nov with PR #6 fix: 422, Input should be 'low', 'medium' or 'high' | Pass |
+| TC-106 | Tasks API | Update task status to completed | PATCH /tasks/6 with status completed | 200, status completed | 200, status completed | Pass |
+| TC-107 | Tasks API | Update task with invalid status | PATCH /tasks/6 with status "done" | 422 Validation Error | Initially 500 (BUG-002). Retest on 22 Nov with PR #6 fix: 422, Input should be 'pending' or 'completed' | Pass |
+| TC-108 | Tasks API | Delete own task | DELETE /tasks/7 | 200, task deleted | 200, Task deleted successfully | Pass |
+| TC-109 | Tasks API | Verify task removed after delete | GET /tasks/ after delete | Task 7 not in list | Task 7 not in list | Pass |
+| TC-110 | Auth API | Access tasks without token | GET /tasks/ without Authorize | 401 Unauthorized | 401 Not authenticated | Pass |
+| TC-111 | Auth API | Get own profile with valid token | Authorize; GET /auth/me | 200 with own name, email, role; no password shown | 200, Tester One, tester1@example.com, role user, no password | Pass |
+| TC-112 | Tasks API | Get own task by id | GET /tasks/6 with valid token | 200 with task 6 details | 200, id 6, title My first task | Pass |
+| TC-113 | Tasks API | Get task that does not exist | GET /tasks/9999 with valid token | 404 Task not found | 404, "Task not found" | Pass |
+| TC-114 | Tasks API | Filter tasks by status completed | GET /tasks/?status_filter=completed | 200, only completed tasks | 200, only task 6 (completed) | Pass |
+| TC-115 | Tasks API | Filter tasks by status pending | GET /tasks/?status_filter=pending | 200, empty list (no pending tasks) | 200, [] | Pass |
+| TC-116 | Tasks API | Search tasks by keyword | GET /tasks/?q=first | 200, tasks with "first" in title | 200, task 6 "My first task" | Pass |
+| TC-117 | Tasks API | Search with keyword that matches nothing | GET /tasks/?q=zzz | 200, empty list | 200, [] | Pass |
+| TC-118 | Tasks API | Filter tasks with invalid status value | GET /tasks/?status_filter=abc | 200 with empty list or 422, no crash | 200, [] (invalid filter returns no tasks) | Pass |
+| TC-119 | Tasks API | Sort tasks by due_date | GET /tasks/?sort=due_date | 200, tasks sorted by due date | 200, task 6 returned (only one task, order not verifiable) | Pass |
+| TC-120 | Tasks API | Sort tasks with invalid sort value | GET /tasks/?sort=abc | 200 or 422, no crash | 200, task 6 returned (invalid sort ignored) | Pass |
+| TC-121 | Tasks API | User cannot read another user's task | tester2 creates task 16; login as tester1; GET /tasks/16 | 404 Task not found | 404, "Task not found" | Pass |
+| TC-122 | Tasks API | Task list shows only own tasks | tester2 has task 16; login as tester1; GET /tasks/ | 200, only tester1's tasks (id 6), no task 16 | 200, only id 6 returned, task 16 not shown | Pass |
+| TC-123 | Admin API | Admin gets all users | Login as admin; GET /admin/users | 200 with list of users, no passwords | 200, 2 users (id 5 user, id 8 admin), no password shown | Pass |
+| TC-124 | Admin API | Admin gets user by id | GET /admin/users/5 | 200 with user 5 details | 200, id 5, Tester One, tester1@example.com, role user | Pass |
+| TC-125 | Admin API | Admin gets user that does not exist | GET /admin/users/9999 | 404 User not found | 404, "User not found" | Pass |
+| TC-126 | Admin API | Admin gets all tasks of all users | GET /admin/tasks | 200 with tasks of all users | 200, task 6 (user 5) and task 16 (user 8) | Pass |
+| TC-127 | Admin API | Admin gets stats | GET /admin/stats | 200 with correct counts | 200, total_users 2, total_tasks 2, pending_tasks 1, completed_tasks 1 (matches data) | Pass |
+| TC-128 | Admin API | Admin root endpoint | GET /admin/ | 200 with message | 200, "Admin API is Working". Observation: works without token (no lock) | Pass |
+| TC-129 | Admin API | Admin deactivates a user | PATCH /admin/users/5/status with is_active false | 200, is_active false | 200, tester1 is_active false | Pass |
+| TC-130 | Admin API | Admin activates a user again | PATCH /admin/users/5/status with is_active true | 200, is_active true | 200, tester1 is_active true | Pass |
+| TC-131 | Admin API | Admin deletes a user | Register deleteme@example.com (id 9); DELETE /admin/users/9 | 200 user deleted | 200, "User deleted successfully" | Pass |
+| TC-132 | Admin API | Admin deletes a user that is already deleted | DELETE /admin/users/9 again | 404 User not found | 404, "User not found" | Pass |
+| TC-133 | Admin API | Get deleted user | GET /admin/users/9 | 404 User not found | 404, "User not found" | Pass |
+| TC-134 | Admin API | Normal user cannot use admin endpoint | Login as tester1 (role user); GET /admin/users | 403 Forbidden | 403, "Admin access required" | Pass |
+| TC-135 | Admin API | Admin endpoint without token | GET /admin/users without Authorize | 401 Unauthorized | 401, "Not authenticated" | Pass |
+
+
+### Frontend + Backend Integration Smoke Tests (PR #2 — Verified on 22 Nov 2026)
+
+| TC ID | Module | Test Scenario | Steps / Input | Expected Result | Actual Result | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| TC-136 | Frontend Auth UI | Login with wrong password | Enter valid email & wrong password; click Sign in | Error banner "Invalid email or password" shown | "Invalid email or password" shown from FastAPI backend | Pass |
+| TC-137 | Frontend Auth UI | Login with valid credentials | Enter 	ester1@example.com & valid password; click Sign in | Redirect to /dashboard with user tasks loaded | Redirected to /dashboard, user tasks & counts loaded | Pass |
+| TC-138 | Frontend Tasks UI | Add new task via UI | Open Add Task, enter title, description, due date, priority; Save | Task created in PostgreSQL & visible in My Tasks | Task saved (201) and rendered immediately in task list | Pass |
+| TC-139 | Frontend Tasks UI | Mark task as completed | Click status circle checkbox on pending task | Task status toggles to Completed | Status updated to Completed (PATCH /tasks/{id}) | Pass |
+| TC-140 | Frontend Tasks UI | Delete task via UI | Click delete icon on task row | Task deleted from DB and removed from list | Task deleted (DELETE /tasks/{id}) and removed from UI | Pass |
+| TC-141 | Frontend Auth UI | Logout from workspace | Click logout button in sidebar | Session cleared and redirected to /login | Redirected to /login cleanly | Pass |
+| TC-142 | Frontend Auth UI | Register new user & data isolation | Create new account (uismoke@example.com) and sign in | Account created, login succeeds with empty (  tasks) dashboard | Account created, logged in with isolated  -task workspace | Pass |
 
 Status values: Not Run, Pass, Fail, Blocked
