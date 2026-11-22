@@ -1,6 +1,6 @@
 
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, Literal
 from pydantic import BaseModel, ConfigDict
 
 
@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict
 class TaskCreate(BaseModel):
     title: str
     description: Optional[str] = None
-    priority: str = "medium"
+    priority: Literal["low", "medium", "high"] = "medium"
     due_date: Optional[date] = None
 
 
@@ -16,8 +16,8 @@ class TaskCreate(BaseModel):
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
-    status: Optional[str] = None
-    priority: Optional[str] = None
+    status: Optional[Literal["pending", "completed"]] = None
+    priority: Optional[Literal["low", "medium", "high"]] = None
     due_date: Optional[date] = None
 
 
