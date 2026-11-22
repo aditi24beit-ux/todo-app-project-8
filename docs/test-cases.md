@@ -111,9 +111,9 @@ If a test fails, log it in [bug-report.md](bug-report.md). Update field names an
 | TC-102 | Tasks API | Get tasks after creating one | GET /tasks/ with valid token | 200 with task in list | 200 with task in list | Pass |
 | TC-103 | Tasks API | Create task without title | POST /tasks/ without title | 422 Validation Error | 422, title Field required | Pass |
 | TC-104 | Auth API | Access tasks with expired token | GET /tasks/ with 4 hour old token | 401 Unauthorized | 401 Invalid or Expired token | Pass |
-| TC-105 | Tasks API | Create task with invalid priority | POST /tasks/ with priority "urgent" | 422 Validation Error | 500 Internal Server Error (BUG-001) | Fail |
+| TC-105 | Tasks API | Create task with invalid priority | POST /tasks/ with priority "urgent" | 422 Validation Error | Initially 500 (BUG-001). Retest on 22 Nov with PR #6 fix: 422, Input should be 'low', 'medium' or 'high' | Pass |
 | TC-106 | Tasks API | Update task status to completed | PATCH /tasks/6 with status completed | 200, status completed | 200, status completed | Pass |
-| TC-107 | Tasks API | Update task with invalid status | PATCH /tasks/6 with status "done" | 422 Validation Error | 500 Internal Server Error (BUG-002) | Fail |
+| TC-107 | Tasks API | Update task with invalid status | PATCH /tasks/6 with status "done" | 422 Validation Error | Initially 500 (BUG-002). Retest on 22 Nov with PR #6 fix: 422, Input should be 'pending' or 'completed' | Pass |
 | TC-108 | Tasks API | Delete own task | DELETE /tasks/7 | 200, task deleted | 200, Task deleted successfully | Pass |
 | TC-109 | Tasks API | Verify task removed after delete | GET /tasks/ after delete | Task 7 not in list | Task 7 not in list | Pass |
 | TC-110 | Auth API | Access tasks without token | GET /tasks/ without Authorize | 401 Unauthorized | 401 Not authenticated | Pass |

@@ -10,7 +10,7 @@ Tester: Adhikesh P Kannan
 - Title: POST /tasks/ returns 500 for invalid priority value
 - Module: Backend / Tasks API
 - Severity: Medium
-- Status: Open
+- Status: Closed (retested 22 Nov 2026 on Vishal's PR #6 fix, commit 880d1fe: priority "urgent" now returns 422, valid priority "high" returns 201)
 - Assigned to: Vishal
 - Reported on: 21 Nov 2026
 - Steps to reproduce:
@@ -30,7 +30,7 @@ Tester: Adhikesh P Kannan
 - Title: PATCH /tasks/{id} returns 500 for invalid status value
 - Module: Backend / Tasks API
 - Severity: Medium
-- Status: Open
+- Status: Closed (retested 22 Nov 2026 on Vishal's PR #6 fix, commit 880d1fe: status "done" now returns 422, valid status "completed" returns 200)
 - Assigned to: Vishal
 - Reported on: 21 Nov 2026
 - Steps to reproduce:
