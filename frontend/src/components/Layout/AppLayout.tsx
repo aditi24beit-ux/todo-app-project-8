@@ -109,17 +109,6 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
               </NavLink>
             </>
           )}
-
-          <div className="sidebar-divider" />
-
-          <div className="nav-static-item">
-            <span className="nav-icon">💬</span>
-            <span>Help &amp; support</span>
-          </div>
-          <div className="nav-static-item">
-            <span className="nav-icon">⚙️</span>
-            <span>Settings</span>
-          </div>
         </nav>
 
         {/* Sidebar Footer */}

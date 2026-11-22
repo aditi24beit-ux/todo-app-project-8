@@ -94,17 +94,6 @@ export default function AdminAllTasks() {
     }
   };
 
-  const handleDeleteTask = async (task: Task) => {
-    if (!window.confirm(`Delete task "${task.title}" across workspace?`)) return;
-    try {
-      await taskService.deleteTask(task.id);
-      setTasks((prev) => prev.filter((t) => t.id !== task.id));
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to delete task.';
-      alert(msg);
-    }
-  };
-
   return (
     <AppLayout pageTitle="All Tasks">
       <div className="admin-tasks-view">
@@ -188,12 +177,11 @@ export default function AdminAllTasks() {
               <table className="admin-tasks-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '38%' }}>TASK</th>
-                    <th style={{ width: '22%' }}>ASSIGNED TO</th>
-                    <th style={{ width: '15%' }}>DUE DATE</th>
-                    <th style={{ width: '12%' }}>STATUS</th>
+                    <th style={{ width: '40%' }}>TASK</th>
+                    <th style={{ width: '24%' }}>ASSIGNED TO</th>
+                    <th style={{ width: '16%' }}>DUE DATE</th>
+                    <th style={{ width: '10%' }}>STATUS</th>
                     <th style={{ width: '10%' }}>PRIORITY</th>
-                    <th style={{ width: '8%', textAlign: 'right' }}>ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -247,19 +235,6 @@ export default function AdminAllTasks() {
                           <span className={`admin-priority-badge ${t.priority}`}>
                             {t.priority}
                           </span>
-                        </td>
-
-                        {/* Actions */}
-                        <td style={{ textAlign: 'right' }}>
-                          <button
-                            type="button"
-                            className="btn-admin-del-task"
-                            onClick={() => handleDeleteTask(t)}
-                            title="Delete task from workspace"
-                            aria-label="Delete task"
-                          >
-                            🗑️
-                          </button>
                         </td>
                       </tr>
                     );
