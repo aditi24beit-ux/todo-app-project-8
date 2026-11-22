@@ -1,8 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import AppLayout from '../../components/Layout/AppLayout';
 import adminService from '../../services/adminService';
-import taskService from '../../services/taskService';
-import type { Task, TaskStatus } from '../../types';
+import type { Task } from '../../types';
 import './AdminAllTasks.css';
 
 export default function AdminAllTasks() {
@@ -80,19 +79,6 @@ export default function AdminAllTasks() {
 
     return result;
   }, [tasks, searchQuery, statusFilter, priorityFilter, ownerFilter]);
-
-  const handleToggleStatus = async (task: Task) => {
-    const nextStatus: TaskStatus = task.status === 'completed' ? 'pending' : 'completed';
-    try {
-      const updated = await taskService.updateTask(task.id, { status: nextStatus });
-      setTasks((prev) =>
-        prev.map((t) => (t.id === task.id ? { ...t, status: updated.status } : t))
-      );
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to update task.';
-      alert(msg);
-    }
-  };
 
   return (
     <AppLayout pageTitle="All Tasks">
@@ -218,16 +204,11 @@ export default function AdminAllTasks() {
                           </span>
                         </td>
 
-                        {/* Status (Clickable Toggle) */}
+                        {/* Status (Read-Only Pill) */}
                         <td>
-                          <button
-                            type="button"
-                            className={`admin-status-toggle ${t.status}`}
-                            onClick={() => handleToggleStatus(t)}
-                            title="Click to toggle status"
-                          >
+                          <span className={`admin-status-badge ${t.status}`}>
                             {t.status === 'completed' ? 'Completed' : 'Pending'}
-                          </button>
+                          </span>
                         </td>
 
                         {/* Priority */}

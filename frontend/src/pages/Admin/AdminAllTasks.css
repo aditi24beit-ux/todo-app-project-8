@@ -201,24 +201,24 @@
   color: #77738a;
 }
 
-.admin-status-toggle {
+.admin-status-badge {
   display: inline-block;
-  padding: 3px 8px;
+  padding: 3px 10px;
   border-radius: 999px;
   font-size: 10px;
   font-weight: 600;
   border: none;
-  cursor: pointer;
-  transition: all 0.15s;
+  cursor: default;
+  user-select: none;
 }
 
-.admin-status-toggle.pending,
-.admin-status-toggle.in-progress {
+.admin-status-badge.pending,
+.admin-status-badge.in-progress {
   background: #fff7e8;
   color: #e69a32;
 }
 
-.admin-status-toggle.completed {
+.admin-status-badge.completed {
   background: #e6f8f0;
   color: #16a36a;
 }
