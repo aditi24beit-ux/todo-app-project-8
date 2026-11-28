@@ -20,7 +20,7 @@ router = APIRouter(prefix="/insights", tags=["AI Productivity Insights"])
 
 def generate_gemini_insights(prompt):
     response = gemini_client.models.generate_content(
-        model="gemini-3.8-flash",
+        model="gemini-3.1-flash-lite",
         contents=prompt
     )
     return response.text or "Gemini returned an empty response."
