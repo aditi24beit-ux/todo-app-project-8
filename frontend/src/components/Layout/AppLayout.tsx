@@ -1,3 +1,4 @@
+
 import { useState, type ReactNode } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -26,14 +27,11 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
 
   return (
     <div className="app-container">
-      {/* Mobile Backdrop */}
       {mobileMenuOpen && (
         <div className="mobile-backdrop" onClick={closeMobileMenu} />
       )}
 
-      {/* Sidebar */}
       <aside className={`app-sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`}>
-        {/* Brand */}
         <div className="sidebar-brand">
           <div className="brand-logo-box">
             <span>✓</span>
@@ -41,77 +39,50 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
           <span className="brand-title">TaskFlow</span>
         </div>
 
-        {/* Workspace Section */}
         <div className="nav-section-label">WORKSPACE</div>
 
         <nav className="sidebar-nav">
           {isAdmin ? (
             <>
-              <NavLink
-                to="/admin"
-                end
-                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                onClick={closeMobileMenu}
-              >
+              <NavLink to="/admin" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
                 <span className="nav-icon">📊</span>
                 <span>Overview</span>
               </NavLink>
-              <NavLink
-                to="/admin/tasks"
-                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                onClick={closeMobileMenu}
-              >
+              <NavLink to="/admin/tasks" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
                 <span className="nav-icon">📋</span>
                 <span>All Tasks</span>
               </NavLink>
-              <NavLink
-                to="/admin/users"
-                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                onClick={closeMobileMenu}
-              >
+              <NavLink to="/admin/users" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
                 <span className="nav-icon">👥</span>
                 <span>Manage Users</span>
               </NavLink>
-              <NavLink
-                to="/admin/statistics"
-                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                onClick={closeMobileMenu}
-              >
+              <NavLink to="/admin/statistics" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
                 <span className="nav-icon">📈</span>
                 <span>Statistics</span>
               </NavLink>
             </>
           ) : (
             <>
-              <NavLink
-                to="/dashboard"
-                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                onClick={closeMobileMenu}
-              >
+              <NavLink to="/dashboard" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
                 <span className="nav-icon">🏠</span>
                 <span>Overview</span>
               </NavLink>
-              <NavLink
-                to="/tasks"
-                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                onClick={closeMobileMenu}
-              >
+              <NavLink to="/tasks" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
                 <span className="nav-icon">✓</span>
                 <span>My Tasks</span>
               </NavLink>
-              <NavLink
-                to="/add-task"
-                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                onClick={closeMobileMenu}
-              >
+              <NavLink to="/add-task" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
                 <span className="nav-icon">+</span>
                 <span>Add Task</span>
+              </NavLink>
+              <NavLink to="/insights" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`} onClick={closeMobileMenu}>
+                <span className="nav-icon">🤖</span>
+                <span>AI Insights</span>
               </NavLink>
             </>
           )}
         </nav>
 
-        {/* Sidebar Footer */}
         <div className="sidebar-user-card">
           <div className="user-avatar-circle">
             {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
@@ -122,43 +93,24 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
               {isAdmin ? 'Admin' : 'User'}
             </span>
           </div>
-          <button
-            type="button"
-            className="btn-sidebar-logout"
-            onClick={handleLogout}
-            title="Log out"
-            aria-label="Log out"
-          >
+          <button type="button" className="btn-sidebar-logout" onClick={handleLogout} title="Log out" aria-label="Log out">
             ↪
           </button>
         </div>
       </aside>
 
-      {/* Main Content Area */}
       <div className="app-main-layout">
-        {/* Top Navigation Bar */}
         <header className="app-topbar">
           <div className="topbar-left">
-            <button
-              type="button"
-              className="btn-hamburger"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle Navigation"
-            >
+            <button type="button" className="btn-hamburger" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Toggle Navigation">
               ☰
             </button>
             <h1 className="topbar-title">{pageTitle}</h1>
           </div>
 
           <div className="topbar-right">
-            {/* Notification Bell */}
             <div className="notification-wrapper">
-              <button
-                type="button"
-                className="btn-topbar-icon"
-                onClick={() => setNotificationOpen(!notificationOpen)}
-                aria-label="Notifications"
-              >
+              <button type="button" className="btn-topbar-icon" onClick={() => setNotificationOpen(!notificationOpen)} aria-label="Notifications">
                 🔔
                 <span className="notification-dot" />
               </button>
@@ -176,7 +128,6 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
               )}
             </div>
 
-            {/* User Profile */}
             <div className="topbar-profile">
               <span className="profile-name">{user?.name || 'User'}</span>
               <div className="profile-avatar">
@@ -186,7 +137,6 @@ export default function AppLayout({ children, pageTitle }: AppLayoutProps) {
           </div>
         </header>
 
-        {/* Page Content */}
         <main className="app-content-body" key={location.pathname}>
           {children}
         </main>

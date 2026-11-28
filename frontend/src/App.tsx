@@ -7,6 +7,7 @@ import Register from './pages/Register/Register';
 import Dashboard from './pages/Dashboard/Dashboard';
 import AddTask from './pages/AddTask/AddTask';
 import TaskList from './pages/TaskList/TaskList';
+import Insights from './pages/Insights/Insights';
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import ManageUsers from './pages/Admin/ManageUsers';
 import AdminAllTasks from './pages/Admin/AdminAllTasks';
@@ -45,6 +46,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <AddTask />
+                </ProtectedRoute>
+              }
+            />
+                        <Route
+              path="/insights"
+              element={
+                <ProtectedRoute>
+                  <Insights />
                 </ProtectedRoute>
               }
             />

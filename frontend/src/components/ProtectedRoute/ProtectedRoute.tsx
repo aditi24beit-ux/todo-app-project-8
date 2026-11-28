@@ -1,3 +1,4 @@
+
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
@@ -6,7 +7,10 @@ interface ProtectedRouteProps {
   requireRole?: 'admin' | 'user';
 }
 
-export default function ProtectedRoute({ children, requireRole }: ProtectedRouteProps) {
+export default function ProtectedRoute({
+  children,
+  requireRole,
+}: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) {
@@ -39,7 +43,6 @@ export default function ProtectedRoute({ children, requireRole }: ProtectedRoute
   }
 
   if (requireRole === 'admin' && user?.role !== 'admin') {
-    // Non-admin trying to access admin section
     return <Navigate to="/dashboard" replace />;
   }
 

@@ -1,3 +1,4 @@
+
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
@@ -16,6 +17,10 @@ export default defineConfig({
         changeOrigin: true,
       },
       '/admin': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+      },
+      '/insights': {
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
       },
